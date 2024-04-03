@@ -14,7 +14,6 @@ frappe.ui.form.on("Asset", {
             }
         }
 	},
-
 });
 
 erpnext.asset.scrap_asset = function (frm) {
