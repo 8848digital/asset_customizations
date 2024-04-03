@@ -49,7 +49,7 @@ erpnext.asset.scrap_asset = function (frm) {
                         asset_name: frm.doc.name,
                         scrap_date: date_to_send
                     },
-                    method: "asset_customizations.asset_modification.doc_events.asset_depreciation.scrap_asset_modified",
+                    method: "asset_customizations.asset_modification.customizations.doc_events.asset_depreciation.scrap_asset_modified",
                     callback: function (r) {
                         cur_frm.reload_doc();
                     },
