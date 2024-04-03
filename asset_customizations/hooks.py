@@ -213,3 +213,5 @@ app_license = "MIT"
 # auth_hooks = [
 # 	"asset_customizations.auth.validate"
 # ]
+
+doctype_js = {"Asset" : "asset_modification/doc_events/asset.js"}
