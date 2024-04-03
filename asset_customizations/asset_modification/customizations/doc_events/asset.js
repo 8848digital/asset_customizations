@@ -33,10 +33,15 @@ erpnext.asset.scrap_asset = function (frm) {
             let date_to_send = values.scrap_date;
             let today_date = frappe.datetime.get_today();
             let scrap_date = new Date(date_to_send);
+            let purchase_date = new Date(frm.doc.purchase_date);
 
             if (new Date(date_to_send) > new Date(today_date)) {
                 frappe.throw(__("Future Date Is Not Allowed"));
             }
+            if (purchase_date > scrap_date) {
+                frappe.throw(__("Scrap Date Cannot Be Before Purchase Date"));
+            }
+
             d.hide();
             frappe.confirm(__("Do you really want to scrap this asset?"), function () {
                 frappe.call({
@@ -54,4 +59,3 @@ erpnext.asset.scrap_asset = function (frm) {
     });
     d.show();
 };
-
