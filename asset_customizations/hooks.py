@@ -214,4 +214,8 @@ app_license = "MIT"
 # 	"asset_customizations.auth.validate"
 # ]
 
-doctype_js = {"Asset" : "asset_modification/doc_events/asset.js"}
+doctype_js = {"Asset" : "asset_modification/customizations/doc_events/asset.js"}
+
+from erpnext.assets.doctype.asset.asset import Asset
+from asset_customizations.asset_modification.customizations.doc_events.asset_modify import on_submit
+Asset.on_submit = on_submit
