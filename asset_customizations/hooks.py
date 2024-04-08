@@ -219,3 +219,8 @@ doctype_js = {"Asset" : "asset_modification/customizations/doc_events/asset.js"}
 from erpnext.assets.doctype.asset.asset import Asset
 from asset_customizations.asset_modification.customizations.doc_events.asset_modify import on_submit
 Asset.on_submit = on_submit
+
+# Overriding Asset Capitalization Doctype to change the Credit Account in Assets Table
+from erpnext.assets.doctype.asset_capitalization.asset_capitalization import AssetCapitalization
+from asset_customizations.asset_modification.customizations.doc_events.asset_capitalization_target_account import get_gl_entries_for_consumed_asset_items
+AssetCapitalization.get_gl_entries_for_consumed_asset_items = get_gl_entries_for_consumed_asset_items
