@@ -221,6 +221,11 @@ from erpnext.assets.doctype.asset.asset import Asset
 from asset_customizations.asset_modification.customizations.doc_events.asset_modify import on_submit
 Asset.on_submit = on_submit
 
+# Overriding Asset Capitalization Doctype to change the Credit Account in Assets Table
+from erpnext.assets.doctype.asset_capitalization.asset_capitalization import AssetCapitalization
+from asset_customizations.asset_modification.customizations.doc_events.asset_capitalization_target_account import get_gl_entries_for_consumed_asset_items
+AssetCapitalization.get_gl_entries_for_consumed_asset_items = get_gl_entries_for_consumed_asset_items
+
 from erpnext.assets.doctype.asset_value_adjustment.asset_value_adjustment import AssetValueAdjustment
 from asset_customizations.asset_modification.customizations.doc_events.asset_value_adjustment_override import set_difference_amount_override,make_depreciation_entry_override
 AssetValueAdjustment.set_difference_amount = set_difference_amount_override
