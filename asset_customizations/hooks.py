@@ -214,7 +214,8 @@ app_license = "MIT"
 # 	"asset_customizations.auth.validate"
 # ]
 
-doctype_js = {"Asset" : "asset_modification/customizations/doc_events/asset.js"}
+doctype_js = {"Asset" : "asset_modification/customizations/doc_events/asset.js",
+            "Asset Value Adjustment": "public/js/asset_value_adjustment_override.js"}
 
 from erpnext.assets.doctype.asset.asset import Asset
 from asset_customizations.asset_modification.customizations.doc_events.asset_modify import on_submit
@@ -224,3 +225,16 @@ Asset.on_submit = on_submit
 from erpnext.assets.doctype.asset_capitalization.asset_capitalization import AssetCapitalization
 from asset_customizations.asset_modification.customizations.doc_events.asset_capitalization_target_account import get_gl_entries_for_consumed_asset_items
 AssetCapitalization.get_gl_entries_for_consumed_asset_items = get_gl_entries_for_consumed_asset_items
+
+from erpnext.assets.doctype.asset_value_adjustment.asset_value_adjustment import AssetValueAdjustment
+from asset_customizations.asset_modification.customizations.doc_events.asset_value_adjustment_override import set_difference_amount_override,make_depreciation_entry_override
+AssetValueAdjustment.set_difference_amount = set_difference_amount_override
+AssetValueAdjustment.make_depreciation_entry = make_depreciation_entry_override
+
+fixtures = [
+    {"dt": "Custom Field", "filters": [
+        [
+            "module", "=", "asset_modification"
+        ]
+    ]}
+]
