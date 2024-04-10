@@ -9,11 +9,11 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 )
 from erpnext.assets.doctype.asset.depreciation import get_depreciation_accounts
 
-def set_difference_amount_override(self):
+def set_difference_amount_custom(self):
     self.difference_amount = flt(self.new_asset_value - self.current_asset_value)
 
 
-def make_depreciation_entry_override(self):
+def make_depreciation_entry_custom(self):
     asset = frappe.get_doc("Asset", self.asset)
     (
         fixed_asset_account,
