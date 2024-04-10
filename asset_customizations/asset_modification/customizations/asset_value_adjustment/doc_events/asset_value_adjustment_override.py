@@ -95,4 +95,8 @@ def make_depreciation_entry_custom(self):
     je.flags.ignore_permissions = True
     je.submit()
 
+<<<<<<< HEAD
     self.db_set("journal_entry", je.name)
+=======
+    self.db_set("journal_entry", je.name)
+>>>>>>> 1426dfbd29371fb9ef9a6f7942a6e8d05021b173
