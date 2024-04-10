@@ -1,44 +1,51 @@
 import frappe
-from frappe import _
 from erpnext.assets.doctype.asset.depreciation import (
-	depreciate_asset,get_gl_entries_on_asset_disposal,
+	depreciate_asset,
+	get_disposal_account_and_cost_center,
 	get_profit_gl_entries,
-	get_disposal_account_and_cost_center
-	)
-from frappe.utils import flt,getdate
+)
+from frappe import _
+from frappe.utils import flt, getdate
+
 
 # Overriding Asset Capitalization Doctype to change the Credit Account in Assets Table
 def get_gl_entries_for_consumed_asset_items(
-		self, gl_entries, target_account, target_against, precision
-	):
-		# Consumed Assets
-		for item in self.asset_items:
-			asset = frappe.get_doc("Asset", item.asset)
+	self, gl_entries, target_account, target_against, precision
+):
+	# Consumed Assets
+	for item in self.asset_items:
+		asset = frappe.get_doc("Asset", item.asset)
 
-			if asset.calculate_depreciation:
-				depreciate_asset(asset, self.posting_date)
-				asset.reload()
+		if asset.calculate_depreciation:
+			depreciate_asset(asset, self.posting_date)
+			asset.reload()
 
-			fixed_asset_gl_entries = get_gl_entries_on_asset_disposal(
-				asset,
-				item.asset_value,
-				item.get("finance_book") or self.get("finance_book"),
-				self.get("doctype"),
-				self.get("name"),
-				self.get("posting_date"),
-			)
+		fixed_asset_gl_entries = get_gl_entries_on_asset_disposal(
+			asset,
+			item.asset_value,
+			item.get("finance_book") or self.get("finance_book"),
+			self.get("doctype"),
+			self.get("name"),
+			self.get("posting_date"),
+		)
 
-			asset.db_set("disposal_date", self.posting_date)
+		asset.db_set("disposal_date", self.posting_date)
 
-			self.set_consumed_asset_status(asset)
+		self.set_consumed_asset_status(asset)
 
-			for gle in fixed_asset_gl_entries:
-				gle["against"] = target_account
-				gl_entries.append(self.get_gl_dict(gle, item=item))
-				target_against.add(gle["account"])
+		for gle in fixed_asset_gl_entries:
+			gle["against"] = target_account
+			gl_entries.append(self.get_gl_dict(gle, item=item))
+			target_against.add(gle["account"])
+
 
 def get_gl_entries_on_asset_disposal(
-	asset, selling_amount=0, finance_book=None, voucher_type=None, voucher_no=None, date=None
+	asset,
+	selling_amount=0,
+	finance_book=None,
+	voucher_type=None,
+	voucher_no=None,
+	date=None,
 ):
 	if not date:
 		date = getdate()
@@ -93,6 +100,7 @@ def get_gl_entries_on_asset_disposal(
 
 	return gl_entries
 
+
 def get_asset_details(asset, finance_book=None):
 	fixed_asset_account, accumulated_depr_account, _ = get_depreciation_accounts(
 		asset.asset_category, asset.company
@@ -113,6 +121,7 @@ def get_asset_details(asset, finance_book=None):
 		disposal_account,
 		value_after_depreciation,
 	)
+
 
 # Function to change the credit account
 def get_depreciation_accounts(asset_category, company):
@@ -136,7 +145,9 @@ def get_depreciation_accounts(asset_category, company):
 
 	if not accumulated_depreciation_account or not depreciation_expense_account:
 		accounts = frappe.get_cached_value(
-			"Company", company, ["accumulated_depreciation_account", "depreciation_expense_account"]
+			"Company",
+			company,
+			["accumulated_depreciation_account", "depreciation_expense_account"],
 		)
 
 		if not accumulated_depreciation_account:
@@ -155,4 +166,8 @@ def get_depreciation_accounts(asset_category, company):
 			)
 		)
 
-	return fixed_asset_account, accumulated_depreciation_account, depreciation_expense_account
+	return (
+		fixed_asset_account,
+		accumulated_depreciation_account,
+		depreciation_expense_account,
+	)

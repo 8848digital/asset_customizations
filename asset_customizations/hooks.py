@@ -5,9 +5,6 @@ app_description = "asset_modification"
 app_email = "manoj@8848digital.com"
 app_license = "MIT"
 
-# Includes in <head>
-# ------------------
-
 # include js, css files in header of desk.html
 # app_include_css = "/assets/asset_customizations/css/asset_customizations.css"
 # app_include_js = "/assets/asset_customizations/js/asset_customizations.js"
@@ -214,27 +211,40 @@ app_license = "MIT"
 # 	"asset_customizations.auth.validate"
 # ]
 
-doctype_js = {"Asset" : "asset_modification/customizations/doc_events/asset.js",
-            "Asset Value Adjustment": "public/js/asset_value_adjustment_override.js"}
+doctype_js = {
+	"Asset": "asset_modification/customizations/doc_events/asset.js",
+	"Asset Value Adjustment": "public/js/asset_value_adjustment_override.js",
+}
 
 from erpnext.assets.doctype.asset.asset import Asset
-from asset_customizations.asset_modification.customizations.doc_events.asset_modify import on_submit
+
+from asset_customizations.asset_modification.customizations.asset_value_adjustment.doc_events.asset_modify import (
+	on_submit,
+)
+
 Asset.on_submit = on_submit
 
 # Overriding Asset Capitalization Doctype to change the Credit Account in Assets Table
 from erpnext.assets.doctype.asset_capitalization.asset_capitalization import AssetCapitalization
-from asset_customizations.asset_modification.customizations.doc_events.asset_capitalization_target_account import get_gl_entries_for_consumed_asset_items
-AssetCapitalization.get_gl_entries_for_consumed_asset_items = get_gl_entries_for_consumed_asset_items
 
-from erpnext.assets.doctype.asset_value_adjustment.asset_value_adjustment import AssetValueAdjustment
-from asset_customizations.asset_modification.customizations.doc_events.asset_value_adjustment_override import set_difference_amount_override,make_depreciation_entry_override
+from asset_customizations.asset_modification.customizations.asset_capitalization.doc_events.asset_capitalization_target_account import (
+	get_gl_entries_for_consumed_asset_items,
+)
+
+AssetCapitalization.get_gl_entries_for_consumed_asset_items = (
+	get_gl_entries_for_consumed_asset_items
+)
+
+from erpnext.assets.doctype.asset_value_adjustment.asset_value_adjustment import (
+	AssetValueAdjustment,
+)
+
+from asset_customizations.asset_modification.customizations.asset_value_adjustment.doc_events.asset_value_adjustment_override import (
+	make_depreciation_entry_override,
+	set_difference_amount_override,
+)
+
 AssetValueAdjustment.set_difference_amount = set_difference_amount_override
 AssetValueAdjustment.make_depreciation_entry = make_depreciation_entry_override
 
-fixtures = [
-    {"dt": "Custom Field", "filters": [
-        [
-            "module", "=", "asset_modification"
-        ]
-    ]}
-]
+fixtures = [{"dt": "Custom Field", "filters": [["module", "=", "asset_modification"]]}]
