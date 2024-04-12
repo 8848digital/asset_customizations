@@ -7,7 +7,7 @@ frappe.ui.form.on("Asset Value Adjustment", {
 			return {
 				filters: {
 					company: frm.doc.company,
-					is_group: 0
+					is_group: 0,
 				},
 			};
 		});
