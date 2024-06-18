@@ -28,38 +28,42 @@ from erpnext.accounts.doctype.journal_entry.journal_entry import make_reverse_jo
 
 @frappe.whitelist()
 def scrap_asset_modified(asset_name,scrap_date):
-    asset = frappe.get_doc("Asset", asset_name)
-    if asset.docstatus != 1:
-        frappe.throw(_("Asset {0} must be submitted").format(asset.name))
-    elif asset.status in ("Cancelled", "Sold", "Scrapped", "Capitalized", "Decapitalized"):
-        frappe.throw(
-            _("Asset {0} cannot be scrapped, as it is already {1}").format(asset.name, asset.status)
-        )
-    date = scrap_date
+	asset = frappe.get_doc("Asset", asset_name)
 
-    depreciate_asset(asset, date)
-    asset.reload()
+	if asset.docstatus != 1:
+		frappe.throw(_("Asset {0} must be submitted").format(asset.name))
+	elif asset.status in ("Cancelled", "Sold", "Scrapped", "Capitalized", "Decapitalized"):
+		frappe.throw(_("Asset {0} cannot be scrapped, as it is already {1}").format(asset.name, asset.status))
 
-    depreciation_series = frappe.get_cached_value(
-        "Company", asset.company, "series_for_depreciation_entry"
-    )
+	date = scrap_date
 
-    je = frappe.new_doc("Journal Entry")
-    je.voucher_type = "Journal Entry"
-    je.naming_series = depreciation_series
-    je.posting_date = date
-    je.company = asset.company
-    je.remark = "Scrap Entry for asset {0}".format(asset_name)
+	notes = _("This schedule was created when Asset {0} was scrapped.").format(
+		get_link_to_form(asset.doctype, asset.name)
+	)
 
-    for entry in get_gl_entries_on_asset_disposal(asset, date):
-        entry.update({"reference_type": "Asset", "reference_name": asset_name})
-        je.append("accounts", entry)
+	depreciate_asset(asset, date, notes)
+	asset.reload()
 
-    je.flags.ignore_permissions = True
-    je.submit()
+	depreciation_series = frappe.get_cached_value("Company", asset.company, "series_for_depreciation_entry")
 
-    frappe.db.set_value("Asset", asset_name, "disposal_date", date)
-    frappe.db.set_value("Asset", asset_name, "journal_entry_for_scrap", je.name)
-    asset.set_status("Scrapped")
+	je = frappe.new_doc("Journal Entry")
+	je.voucher_type = "Journal Entry"
+	je.naming_series = depreciation_series
+	je.posting_date = date
+	je.company = asset.company
+	je.remark = f"Scrap Entry for asset {asset_name}"
 
-    frappe.msgprint(_("Asset scrapped via Journal Entry {0}").format(je.name))
+	for entry in get_gl_entries_on_asset_disposal(asset, date):
+		entry.update({"reference_type": "Asset", "reference_name": asset_name})
+		je.append("accounts", entry)
+
+	je.flags.ignore_permissions = True
+	je.submit()
+
+	frappe.db.set_value("Asset", asset_name, "disposal_date", date)
+	frappe.db.set_value("Asset", asset_name, "journal_entry_for_scrap", je.name)
+	asset.set_status("Scrapped")
+
+	add_asset_activity(asset_name, _("Asset scrapped"))
+
+	frappe.msgprint(_("Asset scrapped via Journal Entry {0}").format(je.name))
