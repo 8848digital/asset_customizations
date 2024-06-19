@@ -11,6 +11,7 @@ from erpnext.assets.doctype.asset.depreciation import get_depreciation_accounts
 
 def set_difference_amount_custom(self):
     self.difference_amount = flt(self.new_asset_value - self.current_asset_value)
+    frappe.db.set_value("Asset",self.asset,"value_after_depreciation",self.new_asset_value)
 
 
 def make_depreciation_entry_custom(self):
