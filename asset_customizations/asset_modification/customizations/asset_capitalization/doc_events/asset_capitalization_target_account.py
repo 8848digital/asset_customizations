@@ -5,12 +5,14 @@ from erpnext.assets.doctype.asset.depreciation import (
 	get_profit_gl_entries,
 	get_disposal_account_and_cost_center
 	)
+from erpnext.assets.doctype.asset_capitalization.asset_capitalization import AssetCapitalization
 from frappe.utils import flt,getdate
 
 # Overriding Asset Capitalization Doctype to change the Credit Account in Assets Table
 def get_gl_entries_for_consumed_asset_items(
 		self, gl_entries, target_account, target_against, precision
 	):
+	if "asset_customizations" in frappe.get_installed_apps():
 		# Consumed Assets
 		for item in self.asset_items:
 			asset = frappe.get_doc("Asset", item.asset)
@@ -36,6 +38,8 @@ def get_gl_entries_for_consumed_asset_items(
 				gle["against"] = target_account
 				gl_entries.append(self.get_gl_dict(gle, item=item))
 				target_against.add(gle["account"])
+	else:
+		AssetCapitalization.get_gl_entries_for_consumed_asset_items(self, gl_entries, target_account, target_against, precision)
 
 def get_gl_entries_on_asset_disposal(
 	asset, selling_amount=0, finance_book=None, voucher_type=None, voucher_no=None, date=None
