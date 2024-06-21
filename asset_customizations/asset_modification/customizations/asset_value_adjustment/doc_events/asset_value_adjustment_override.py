@@ -13,7 +13,6 @@ from erpnext.assets.doctype.asset_value_adjustment.asset_value_adjustment import
 def set_difference_amount_custom(self):
     if "asset_customizations" in frappe.get_installed_apps():
         self.difference_amount = flt(self.new_asset_value - self.current_asset_value)
-
         frappe.db.set_value("Asset",self.asset,"value_after_depreciation",self.new_asset_value)
     else:
         AssetValueAdjustment.set_difference_amount(self)
@@ -32,7 +31,7 @@ def make_depreciation_entry_custom(self):
         )
 
         je = frappe.new_doc("Journal Entry")
-        je.voucher_type = "Depreciation Entry"
+        je.voucher_type = "Journal Entry"
         je.naming_series = depreciation_series
         je.posting_date = self.date
         je.company = self.company
