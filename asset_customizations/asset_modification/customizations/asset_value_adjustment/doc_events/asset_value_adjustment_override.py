@@ -35,7 +35,7 @@ def make_depreciation_entry_custom(self):
         je.naming_series = depreciation_series
         je.posting_date = self.date
         je.company = self.company
-        je.remark = "Depreciation Entry against {0} worth {1}".format(self.asset, self.difference_amount)
+        je.remark = "Revaluation Entry against {0} worth {1}".format(self.asset, self.difference_amount)
         je.finance_book = self.finance_book
 
         if self.difference_amount<0:
