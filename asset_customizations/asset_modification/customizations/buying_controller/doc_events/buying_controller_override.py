@@ -16,7 +16,6 @@ from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseRece
 
 class CustomPurchaseReceipt(PurchaseReceipt):
     def auto_make_assets(self, asset_items):
-        print("111111111111111111")
         items_data = get_asset_item_details(asset_items)
         messages = []
         
@@ -85,7 +84,6 @@ class CustomPurchaseReceipt(PurchaseReceipt):
             frappe.msgprint(message, title="Success", indicator="green")
 
     def make_asset(self, row, is_grouped_asset=False, **kwargs):
-        print("22222222222222")
         if not row.asset_location:
             frappe.throw(_("Row {0}: Enter location for the asset item {1}").format(row.idx, row.item_code))
 
