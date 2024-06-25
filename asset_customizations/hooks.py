@@ -230,6 +230,11 @@ from asset_customizations.asset_modification.customizations.asset_value_adjustme
 AssetValueAdjustment.set_difference_amount = set_difference_amount_custom
 AssetValueAdjustment.make_depreciation_entry = make_depreciation_entry_custom
 
+from erpnext.controllers.buying_controller import BuyingController
+from asset_customizations.asset_modification.customizations.buying_controller.doc_events.buying_controller_override import auto_make_assets_custom,make_asset_custom
+BuyingController.auto_make_assets = auto_make_assets_custom
+BuyingController.make_asset = make_asset_custom
+
 fixtures = [
     {"dt": "Custom Field", "filters": [
         [
