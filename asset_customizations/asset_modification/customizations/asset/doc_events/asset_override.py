@@ -78,3 +78,39 @@ class CustomAsset(Asset):
             }
         ).insert()
         asset_movement.submit()
+
+@frappe.whitelist()
+def make_asset_movement(assets, purpose=None):
+    import json
+
+    if isinstance(assets, str):
+        assets = json.loads(assets)
+
+    if len(assets) == 0:
+        frappe.throw(_("At least one asset has to be selected."))
+
+    asset_movement = frappe.new_doc("Asset Movement")
+    asset_movement.quantity = len(assets)
+    
+    for asset_data in assets:
+        asset = frappe.get_doc("Asset", asset_data.get("name"))
+        asset_movement.company = asset.get("company")
+        
+        fields = frappe.get_list("Accounting Dimension", pluck="name")
+        transformed_fields = [f"from_{field.lower().replace(' ', '_')}" for field in fields]
+        
+        asset_dict = {
+            "asset": asset.get("name"),
+            "source_location": asset.get("location"),
+            "from_employee": asset.get("custodian"),
+            "custom_from_cost_center": asset.get("cost_center")
+        }
+        
+        for field in transformed_fields:
+            original_fieldname = field.replace("from_", "")
+            asset_dict[field] = asset.get(original_fieldname, None)
+        
+        asset_movement.append("assets", asset_dict)
+        
+    if asset_movement.get("assets"):
+        return asset_movement.as_dict()
