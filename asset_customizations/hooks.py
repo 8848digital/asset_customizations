@@ -111,7 +111,8 @@ app_license = "MIT"
 override_doctype_class = {
 	"Purchase Receipt":"asset_customizations.asset_modification.customizations.buying_controller.doc_events.buying_controller_override.CustomPurchaseReceipt",
     "Asset":"asset_customizations.asset_modification.customizations.asset.doc_events.asset_override.CustomAsset",
-    "Accounting Dimension":"asset_customizations.asset_modification.customizations.accounting_dimension.doc_events.accounting_dimension_override.CustomAccountingDimension"
+    "Accounting Dimension":"asset_customizations.asset_modification.customizations.accounting_dimension.doc_events.accounting_dimension_override.CustomAccountingDimension",
+    "Asset Movement":"asset_customizations.asset_modification.customizations.asset_movement.doc_events.asset_movement_override.CustomAssetMovement"
 }
 
 # Document Events
@@ -155,9 +156,9 @@ override_doctype_class = {
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "asset_customizations.event.get_events"
-# }
+override_whitelisted_methods = {
+"erpnext.assets.doctype.asset.asset.make_asset_movement":"asset_customizations.asset_modification.customizations.asset.doc_events.asset_override.make_asset_movement"
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -216,7 +217,9 @@ override_doctype_class = {
 # 	"asset_customizations.auth.validate"
 # ]
 doctype_js = {"Asset" : "asset_modification/customizations/asset_value_adjustment/doc_events/asset.js",
-            "Asset Value Adjustment": "public/js/asset_value_adjustment_override.js"}
+            "Asset Value Adjustment": "public/js/asset_value_adjustment_override.js",
+            "Asset Movement": "asset_modification/customizations/asset_movement/doc_events/asset_movement_override.js"
+            }
 
 from erpnext.assets.doctype.asset.asset import Asset
 from asset_customizations.asset_modification.customizations.asset_value_adjustment.doc_events.asset_modify import on_submit
