@@ -109,7 +109,9 @@ app_license = "MIT"
 # Override standard doctype classes
 
 override_doctype_class = {
-	"Purchase Receipt":"asset_customizations.asset_modification.customizations.buying_controller.doc_events.buying_controller_override.CustomPurchaseReceipt"
+	"Purchase Receipt":"asset_customizations.asset_modification.customizations.buying_controller.doc_events.buying_controller_override.CustomPurchaseReceipt",
+    "Asset":"asset_customizations.asset_modification.customizations.asset.doc_events.asset_override.CustomAsset",
+    "Accounting Dimension":"asset_customizations.asset_modification.customizations.accounting_dimension.doc_events.accounting_dimension_override.CustomAccountingDimension"
 }
 
 # Document Events
@@ -241,4 +243,56 @@ fixtures = [
             "module", "=", "asset_modification"
         ]
     ]}
+]
+
+accounting_dimension_doctypes_for_asset = [
+	"GL Entry",
+	"Payment Ledger Entry",
+	"Sales Invoice",
+	"Purchase Invoice",
+	"Payment Entry",
+	"Asset",
+	"Stock Entry",
+	"Budget",
+	"Delivery Note",
+	"Sales Invoice Item",
+	"Purchase Invoice Item",
+	"Purchase Order Item",
+	"Sales Order Item",
+	"Journal Entry Account",
+	"Material Request Item",
+	"Delivery Note Item",
+	"Purchase Receipt Item",
+	"Stock Entry Detail",
+	"Payment Entry Deduction",
+	"Sales Taxes and Charges",
+	"Purchase Taxes and Charges",
+	"Shipping Rule",
+	"Landed Cost Item",
+	"Asset Value Adjustment",
+	"Asset Repair",
+	"Asset Capitalization",
+	"Loyalty Program",
+	"Stock Reconciliation",
+	"POS Profile",
+	"Opening Invoice Creation Tool",
+	"Opening Invoice Creation Tool Item",
+	"Subscription",
+	"Subscription Plan",
+	"POS Invoice",
+	"POS Invoice Item",
+	"Purchase Order",
+	"Purchase Receipt",
+	"Sales Order",
+	"Subcontracting Order",
+	"Subcontracting Order Item",
+	"Subcontracting Receipt",
+	"Subcontracting Receipt Item",
+	"Account Closing Balance",
+	"Supplier Quotation",
+	"Supplier Quotation Item",
+	"Payment Reconciliation",
+	"Payment Reconciliation Allocation",
+	"Payment Request",
+ 	"Asset Movement Item"
 ]
