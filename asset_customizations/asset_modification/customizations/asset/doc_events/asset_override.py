@@ -48,7 +48,7 @@ class CustomAsset(Asset):
             transaction_date = get_datetime(f"{posting_date} {posting_time}")
 
         fields = frappe.get_list("Accounting Dimension", pluck="name")
-        transformed_fields = [f"from_{field.lower().replace(' ', '_')}" for field in fields]
+        transformed_fields = [f"target_{field.lower().replace(' ', '_')}" for field in fields]
 
         # Create dynamic dictionary for assets
         assets_dict = {
@@ -56,11 +56,11 @@ class CustomAsset(Asset):
             "asset_name": self.asset_name,
             "target_location": self.location,
             "to_employee": self.custodian,
-            "custom_cost_center": self.cost_center
+            "custom_target_cost_center": self.cost_center
         }
 
         for field in transformed_fields:
-            original_fieldname = field.replace("from_", "")
+            original_fieldname = field.replace("target_", "")
             assets_dict[field] = getattr(self, original_fieldname, None)
 
         assets = [assets_dict]
