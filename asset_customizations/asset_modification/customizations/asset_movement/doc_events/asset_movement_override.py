@@ -84,3 +84,51 @@ class CustomAssetMovement(AssetMovement):
 					d.asset,
 					_("Asset issued to Employee {0}").format(get_link_to_form("Employee", current_employee)),
 				)
+
+	def validate_location(self):
+		print("override working")
+		for d in self.assets:
+			if self.purpose in ["Transfer", "Issue"]:
+				current_location = frappe.db.get_value("Asset", d.asset, "location")
+				if d.source_location:
+					if current_location != d.source_location:
+						frappe.throw(
+							_("Asset {0} does not belongs to the location {1}").format(
+								d.asset, d.source_location
+							)
+						)
+				else:
+					d.source_location = current_location
+
+			if self.purpose == "Issue":
+				if not d.to_employee:
+					frappe.throw(_("Employee is required while issuing Asset {0}").format(d.asset))
+
+			if self.purpose == "Transfer":
+				if not d.target_location:
+					frappe.throw(
+						_("Target Location is required while transferring Asset {0}").format(d.asset)
+					)
+				if d.source_location == d.target_location:
+					frappe.throw(_("Source and Target Location cannot be same"))
+
+			if self.purpose == "Receipt":
+				if not (d.source_location) and not (d.target_location or d.to_employee):
+					frappe.throw(
+						_("Target Location or To Employee is required while receiving Asset {0}").format(
+							d.asset
+						)
+					)
+				elif d.source_location:
+					if d.from_employee and not d.target_location:
+						frappe.throw(
+							_(
+								"Target Location is required while receiving Asset {0} from an employee"
+							).format(d.asset)
+						)
+					elif d.to_employee and d.target_location:
+						frappe.throw(
+							_(
+								"Asset {0} cannot be received at a location and given to an employee in a single movement"
+							).format(d.asset)
+						)
