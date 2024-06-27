@@ -86,7 +86,6 @@ class CustomAssetMovement(AssetMovement):
 				)
 
 	def validate_location(self):
-		print("override working")
 		for d in self.assets:
 			if self.purpose in ["Transfer", "Issue"]:
 				current_location = frappe.db.get_value("Asset", d.asset, "location")

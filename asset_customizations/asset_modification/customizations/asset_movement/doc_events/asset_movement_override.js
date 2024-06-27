@@ -3,7 +3,6 @@ frappe.ui.form.off("Asset Movement", "set_required_fields");
 frappe.ui.form.on("Asset Movement", {
 	set_required_fields: (frm, cdt, cdn) => {
 		let fieldnames_to_be_altered;
-		console.log("innnnnnnnnnnnnnnnn 1")
 		if (frm.doc.purpose === "Transfer") {
 			fieldnames_to_be_altered = {
 				target_location: { read_only: 0, reqd: 1 },
@@ -27,7 +26,6 @@ frappe.ui.form.on("Asset Movement", {
 			};
 		}
 		if (fieldnames_to_be_altered) {
-			console.log("innnnnnnnnnnnnnnnn 2")
 			Object.keys(fieldnames_to_be_altered).forEach((fieldname) => {
 				let property_to_be_altered = fieldnames_to_be_altered[fieldname];
 				Object.keys(property_to_be_altered).forEach((property) => {
