@@ -112,7 +112,9 @@ override_doctype_class = {
 	"Purchase Receipt":"asset_customizations.asset_modification.customizations.buying_controller.doc_events.buying_controller_override.CustomPurchaseReceipt",
     "Asset":"asset_customizations.asset_modification.customizations.asset.doc_events.asset_override.CustomAsset",
     "Accounting Dimension":"asset_customizations.asset_modification.customizations.accounting_dimension.doc_events.accounting_dimension_override.CustomAccountingDimension",
-    "Asset Movement":"asset_customizations.asset_modification.customizations.asset_movement.doc_events.asset_movement_override.CustomAssetMovement"
+    "Asset Movement":"asset_customizations.asset_modification.customizations.asset_movement.doc_events.asset_movement_override.CustomAssetMovement",
+    "Asset Depreciation Schedule":"asset_customizations.asset_modification.customizations.asset_depreciation_schedule.doc_event.asset_depreciation_schedule_override.CustomAssetDepreciationSchedule"
+
 }
 
 # Document Events
@@ -157,7 +159,8 @@ override_doctype_class = {
 # ------------------------------
 #
 override_whitelisted_methods = {
-"erpnext.assets.doctype.asset.asset.make_asset_movement":"asset_customizations.asset_modification.customizations.asset.doc_events.asset_override.make_asset_movement"
+"erpnext.assets.doctype.asset.asset.make_asset_movement" : "asset_customizations.asset_modification.customizations.asset.doc_events.asset_override.make_asset_movement",
+"erpnext.assets.doctype.asset.depreciation.make_depreciation_entry" : "asset_customizations.asset_modification.customizations.asset.doc_events.depreciation_override.make_depreciation_entry"
 }
 #
 # each overriding function accepts a `data` argument;
@@ -235,6 +238,11 @@ from asset_customizations.asset_modification.customizations.asset_value_adjustme
 AssetValueAdjustment.set_difference_amount = set_difference_amount_custom
 AssetValueAdjustment.make_depreciation_entry = make_depreciation_entry_custom
 
+
+from erpnext.assets.doctype.asset import depreciation
+from asset_customizations.asset_modification.customizations.asset.doc_events.depreciation_override import _make_journal_entry_for_depreciation
+depreciation._make_journal_entry_for_depreciation = _make_journal_entry_for_depreciation
+
 # from erpnext.controllers.buying_controller import BuyingController
 # from asset_customizations.asset_modification.customizations.buying_controller.doc_events.buying_controller_override import auto_make_assets_custom,make_asset_custom
 # BuyingController.auto_make_assets = auto_make_assets_custom
@@ -297,5 +305,6 @@ accounting_dimension_doctypes_for_asset = [
 	"Payment Reconciliation",
 	"Payment Reconciliation Allocation",
 	"Payment Request",
- 	"Asset Movement Item"
+ 	"Asset Movement Item",
+  	"Asset Depreciation Schedule"
 ]
