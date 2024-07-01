@@ -102,8 +102,6 @@ def make_depreciation_entry(
         return asset_depr_schedule_doc
 
     raise depreciation_posting_error
-# fields = frappe.get_list("Accounting Dimension", pluck="name")
-# additional_fields = [f"{field.lower().replace(' ', '_')}" for field in fields]
 
 
 def _make_journal_entry_for_depreciation(

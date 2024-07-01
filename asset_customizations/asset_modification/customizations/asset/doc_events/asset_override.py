@@ -37,6 +37,24 @@ from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.assets.doctype.asset.asset import Asset
 
 class CustomAsset(Asset):
+    def on_submit(self):
+        if "asset_customizations" in frappe.get_installed_apps():
+            self.validate_in_use_date()
+            self.make_asset_movement()
+            if self.calculate_depreciation and not self.split_from:
+                convert_draft_asset_depr_schedules_into_active(self)
+            self.set_status()
+            add_asset_activity(self.name, _("Asset submitted"))
+        else:
+            self.validate_in_use_date()
+            self.make_asset_movement()
+            if not self.booked_fixed_asset and self.validate_make_gl_entry():
+                self.make_gl_entries()
+            if self.calculate_depreciation and not self.split_from:
+                convert_draft_asset_depr_schedules_into_active(self)
+            self.set_status()
+            add_asset_activity(self.name, _("Asset submitted"))
+
     def make_asset_movement(self):
         reference_doctype = "Purchase Receipt" if self.purchase_receipt else "Purchase Invoice"
         reference_docname = self.purchase_receipt or self.purchase_invoice
