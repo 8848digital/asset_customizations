@@ -224,9 +224,6 @@ doctype_js = {"Asset" : "asset_modification/customizations/asset_value_adjustmen
             "Asset Movement": "asset_modification/customizations/asset_movement/doc_events/asset_movement_override.js"
             }
 
-from erpnext.assets.doctype.asset.asset import Asset
-from asset_customizations.asset_modification.customizations.asset_value_adjustment.doc_events.asset_modify import on_submit
-Asset.on_submit = on_submit
 
 # Overriding Asset Capitalization Doctype to change the Credit Account in Assets Table
 from erpnext.assets.doctype.asset_capitalization.asset_capitalization import AssetCapitalization
