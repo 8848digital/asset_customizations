@@ -1,24 +1,8 @@
 import frappe
 from frappe import _
-from frappe.model.document import Document
-from frappe.utils import (
-	add_days,
-	add_months,
-	add_years,
-	cint,
-	date_diff,
-	flt,
-	get_first_day,
-	get_last_day,
-	getdate,
-	is_last_day_of_the_month,
-	month_diff,
-)
-
-import erpnext
-from erpnext.accounts.utils import get_fiscal_year
 
 from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import AssetDepreciationSchedule
+
 
 class CustomAssetDepreciationSchedule(AssetDepreciationSchedule):
     def set_draft_asset_depr_schedule_details(self, asset_doc, row):

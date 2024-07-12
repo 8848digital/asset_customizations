@@ -121,13 +121,13 @@ override_doctype_class = {
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Asset Movement": {
+		"validate": "asset_customizations.asset_modification.customizations.asset_movement.asset_movement.validate",
+		"before_cancel": "asset_customizations.asset_modification.customizations.asset_movement.asset_movement.before_cancel",
+		"on_cancel": "asset_customizations.asset_modification.customizations.asset_movement.asset_movement.on_cancel",
+	}
+}
 
 # Scheduled Tasks
 # ---------------

@@ -1,10 +1,11 @@
 import frappe
 from frappe import _
-from frappe.model.document import Document
-from frappe.utils import get_link_to_form
+from frappe.utils import get_link_to_form, date_diff, getdate
 
 from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
 from erpnext.assets.doctype.asset_movement.asset_movement import AssetMovement
+from asset_customizations.asset_modification.customizations.asset.doc_events.depreciation_override import make_depreciation_entry
+
 
 class CustomAssetMovement(AssetMovement):
 	def set_latest_location_and_custodian_in_asset(self):
@@ -57,16 +58,31 @@ class CustomAssetMovement(AssetMovement):
 				for original_field in field_mapping.values():
 					current_values[original_field] = ""
 
-			# Set values in Asset document
 			frappe.db.set_value("Asset", d.asset, "location", current_location, update_modified=False)
 			frappe.db.set_value("Asset", d.asset, "custodian", current_employee, update_modified=False)
 			frappe.db.set_value("Asset", d.asset, "cost_center", custom_target_cost_center, update_modified=False)
 
-			# Set values for original fields based on mappings
 			for original_field in field_mapping.values():
 				frappe.db.set_value("Asset", d.asset, original_field, current_values[original_field], update_modified=False)
 
-			# Add activity based on the updated values
+			if len(frappe.db.get_all("Asset Movement Item", {"asset": d.asset})) > 1:
+				asset_depr_schedule_doc = frappe.get_doc("Asset Depreciation Schedule", {"asset":d.asset})
+				update_depreciation_schedule(d.asset, asset_depr_schedule_doc.name, self.transaction_date)
+				make_depreciation_entry(asset_depr_schedule_doc.name)
+
+				frappe.db.set_value("Asset Depreciation Schedule",
+                        			asset_depr_schedule_doc.name,
+                           			"custom_cost_center",
+                              		custom_target_cost_center,
+                                	update_modified=True)
+
+				for original_field in field_mapping.values():
+					frappe.db.set_value("Asset Depreciation Schedule",
+										asset_depr_schedule_doc.name,
+										original_field,
+										current_values[original_field], 
+										update_modified=True)
+
 			if current_location and current_employee:
 				add_asset_activity(
 					d.asset,
@@ -135,3 +151,82 @@ class CustomAssetMovement(AssetMovement):
 								"Asset {0} cannot be received at a location and given to an employee in a single movement"
 							).format(d.asset)
 						)
+      
+
+def update_depreciation_schedule(asset_name, asset_depriciation_schedule_name, transaction_date):
+	transaction_date = getdate(transaction_date)
+	asset_available_for_use_date = frappe.db.get_value("Asset", asset_name, "available_for_use_date")
+
+	asset_depr_schedule_list = frappe.db.get_all(
+		"Depreciation Schedule", 
+		filters={"parent": asset_depriciation_schedule_name}, 
+		fields=["schedule_date", "name", "depreciation_amount", "accumulated_depreciation_amount", "journal_entry"], 
+		order_by="schedule_date"
+	)
+
+	previous_schedule = None
+	next_schedule = None
+
+	for schedule in asset_depr_schedule_list:
+		if transaction_date == schedule["schedule_date"]:
+			return
+		if schedule["schedule_date"] < transaction_date:
+			previous_schedule = schedule
+		elif schedule["schedule_date"] > transaction_date:
+			next_schedule = schedule
+			break
+	
+	update_depreciation_schedule(previous_schedule, next_schedule, 
+                              asset_available_for_use_date, transaction_date,
+                              asset_depriciation_schedule_name)
+
+
+def update_depreciation_schedule(
+    previous_schedule,
+    next_schedule,
+    asset_available_for_use_date,
+    transaction_date,
+    asset_depriciation_schedule_name
+    ):
+
+	if not previous_schedule and next_schedule:
+		date_diff_between_schedule = date_diff(next_schedule["schedule_date"], asset_available_for_use_date)
+		date_difference = date_diff(transaction_date, asset_available_for_use_date)
+		
+		dep_amount_for_today = (next_schedule["depreciation_amount"] / date_diff_between_schedule) * date_difference
+		dep_amount_for_next_schedule = next_schedule["depreciation_amount"] - dep_amount_for_today
+				
+		accumulated_depreciation_amount = dep_amount_for_today   
+
+	elif previous_schedule and next_schedule:
+		date_diff_between_schedule = date_diff(next_schedule["schedule_date"], previous_schedule["schedule_date"])
+		date_difference = date_diff(transaction_date, previous_schedule["schedule_date"])
+		
+		dep_amount_for_today = next_schedule["depreciation_amount"] / date_diff_between_schedule * date_difference
+		dep_amount_for_next_schedule = next_schedule["depreciation_amount"] - dep_amount_for_today
+				
+		accumulated_depreciation_amount = previous_schedule["accumulated_depreciation_amount"]+dep_amount_for_today
+	
+	else:
+		return
+
+	asset_depreciation_schedule = frappe.get_doc("Asset Depreciation Schedule", asset_depriciation_schedule_name)
+	asset_depreciation_schedule.append("depreciation_schedule",{
+		"schedule_date": transaction_date,
+		"depreciation_amount": dep_amount_for_today,
+		"accumulated_depreciation_amount": accumulated_depreciation_amount
+	})
+	asset_depreciation_schedule.save()
+
+	frappe.db.set_value("Depreciation Schedule", next_schedule["name"],
+						"depreciation_amount", dep_amount_for_next_schedule)
+	
+	updated_asset_depr_schedule_list = frappe.db.get_all(
+		"Depreciation Schedule", 
+		filters={"parent": asset_depriciation_schedule_name}, 
+		fields=["schedule_date", "name"], 
+		order_by="schedule_date"
+	)
+	
+	for idx, schedule in enumerate(updated_asset_depr_schedule_list):
+		frappe.db.set_value("Depreciation Schedule", schedule["name"], "idx", idx + 1)
