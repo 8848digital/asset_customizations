@@ -246,6 +246,12 @@ fixtures = [
         [
             "module", "=", "asset_modification"
         ]
+    ]},
+
+    {"dt": "Property Setter", "filters": [
+        [
+            "module", "=", "asset_modification"
+        ]
     ]}
 ]
 
