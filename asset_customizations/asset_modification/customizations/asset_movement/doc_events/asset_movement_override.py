@@ -176,12 +176,12 @@ def update_depreciation_schedule(asset_name, asset_depriciation_schedule_name, t
 			next_schedule = schedule
 			break
 	
-	update_depreciation_schedule(previous_schedule, next_schedule, 
+	set_depreciation_schedule(previous_schedule, next_schedule, 
                               asset_available_for_use_date, transaction_date,
                               asset_depriciation_schedule_name)
 
 
-def update_depreciation_schedule(
+def set_depreciation_schedule(
     previous_schedule,
     next_schedule,
     asset_available_for_use_date,
