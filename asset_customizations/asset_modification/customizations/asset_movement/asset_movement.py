@@ -16,6 +16,9 @@ def on_cancel(self, method=None):
 
 def validate_dep_schedule(self):
 	for asset in self.assets:
+		if not frappe.db.exists("Asset Depreciation Schedule", {"asset": asset.asset}):
+			return
+
 		asset_depr_schedule_doc = frappe.get_doc("Asset Depreciation Schedule", {"asset": asset.asset})
 		transaction_date = getdate(self.transaction_date)
 
@@ -34,7 +37,7 @@ def validate_dep_schedule(self):
 				break
 		if next_schedule:
 			if next_schedule["journal_entry"]:
-				frappe.throw("Journal Entry of Transaction Date is already made")
+				frappe.throw("Depreciation Entry of Transaction Date is already made")
 
 
 def on_cancel_reverse_depreciation_schedule(self):
