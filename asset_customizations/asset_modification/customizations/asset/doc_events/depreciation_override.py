@@ -1,37 +1,17 @@
-# Copyright (c) 2016, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
-
-
 import frappe
 from frappe import _
-from frappe.query_builder import Order
-from frappe.query_builder.functions import Max, Min
 from frappe.utils import (
-    add_months,
     cint,
-    flt,
-    get_last_day,
-    get_link_to_form,
     getdate,
-    is_last_day_of_the_month,
-    nowdate,
     today,
 )
-from frappe.utils.user import get_users_with_role
 
-import erpnext
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
     get_checks_for_pl_and_bs_accounts,
 )
-from erpnext.accounts.doctype.journal_entry.journal_entry import make_reverse_journal_entry
-from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
-from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
-    get_asset_depr_schedule_doc,
-    get_asset_depr_schedule_name,
-    get_temp_asset_depr_schedule_doc,
-    make_new_active_asset_depr_schedules_and_cancel_current_ones,
-)
+
 from erpnext.assets.doctype.asset.depreciation import get_credit_and_debit_accounts_for_asset_category_and_company,_make_journal_entry_for_depreciation
+
 
 @frappe.whitelist()
 def make_depreciation_entry(
@@ -41,8 +21,7 @@ def make_depreciation_entry(
     sch_end_idx=None,
     credit_and_debit_accounts=None,
     depreciation_cost_center_and_depreciation_series=None,
-    accounting_dimensions=None,
-    **kwargs
+    accounting_dimensions=None
 ):
     frappe.has_permission("Journal Entry", throw=True)
     
@@ -89,9 +68,8 @@ def make_depreciation_entry(
                 depreciation_series,
                 credit_account,
                 debit_account,
-                accounting_dimensions,
-                **kwargs
-            )
+                accounting_dimensions
+                )
         except Exception as e:
             depreciation_posting_error = e
 
@@ -115,8 +93,7 @@ def _make_journal_entry_for_depreciation(
     depreciation_series,
     credit_account,
     debit_account,
-    accounting_dimensions,
-    **kwargs
+    accounting_dimensions
 ):
     if not (sch_start_idx and sch_end_idx) and not (
         not depr_schedule.journal_entry and getdate(depr_schedule.schedule_date) <= getdate(date)
@@ -131,13 +108,6 @@ def _make_journal_entry_for_depreciation(
     je.finance_book = asset_depr_schedule_doc.finance_book
     je.remark = f"Depreciation Entry against {asset.name} worth {depr_schedule.depreciation_amount}"
 
-    fields = frappe.get_list("Accounting Dimension", pluck="name")
-    additional_fields = {}
-    for i in fields:
-        field_name = i.lower().replace(' ', '_')
-        field_data = frappe.db.get_value("Asset Depreciation Schedule", asset_depr_schedule_doc.name, field_name)
-        additional_fields[field_name] = field_data
-  
     credit_entry = {
         "account": credit_account,
         "credit_in_account_currency": depr_schedule.depreciation_amount,
@@ -145,7 +115,6 @@ def _make_journal_entry_for_depreciation(
         "reference_name": asset.name,
         "cost_center": depreciation_cost_center,
     }
-    credit_entry.update(additional_fields)
 
     debit_entry = {
         "account": debit_account,
@@ -154,8 +123,7 @@ def _make_journal_entry_for_depreciation(
         "reference_name": asset.name,
         "cost_center": depreciation_cost_center,
     }
-    debit_entry.update(additional_fields)
-
+    
     for dimension in accounting_dimensions:
         if asset.get(dimension["fieldname"]) or dimension.get("mandatory_for_bs"):
             credit_entry.update(
@@ -172,6 +140,16 @@ def _make_journal_entry_for_depreciation(
                     or dimension.get("default_dimension")
                 }
             )
+
+    fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
+    additional_fields = {}
+    for fieldname in fieldnames:
+        field_data = frappe.db.get_value("Asset Depreciation Schedule",
+                                         asset_depr_schedule_doc.name, fieldname)
+        additional_fields[fieldname] = field_data
+
+    credit_entry.update(additional_fields)
+    debit_entry.update(additional_fields)
 
     je.append("accounts", credit_entry)
     je.append("accounts", debit_entry)
