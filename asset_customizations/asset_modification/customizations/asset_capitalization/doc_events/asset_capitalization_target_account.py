@@ -1,45 +1,92 @@
 import frappe
 from frappe import _
+import erpnext
+
 from erpnext.assets.doctype.asset.depreciation import (
-	depreciate_asset,get_gl_entries_on_asset_disposal,
+	depreciate_asset,
+	get_gl_entries_on_asset_disposal,
 	get_profit_gl_entries,
 	get_disposal_account_and_cost_center
 	)
 from erpnext.assets.doctype.asset_capitalization.asset_capitalization import AssetCapitalization
-from frappe.utils import flt,getdate
+from frappe.utils import flt,getdate,get_link_to_form
 
 # Overriding Asset Capitalization Doctype to change the Credit Account in Assets Table
-def get_gl_entries_for_consumed_asset_items(
-		self, gl_entries, target_account, target_against, precision
-	):
-	if "asset_customizations" in frappe.get_installed_apps():
-		# Consumed Assets
-		for item in self.asset_items:
-			asset = frappe.get_doc("Asset", item.asset)
+# def get_gl_entries_for_consumed_asset_items(
+# 		self, gl_entries, target_account, target_against, precision
+# 	):
+# 	if "asset_customizations" in frappe.get_installed_apps():
+# 		# Consumed Assets
+# 		for item in self.asset_items:
+# 			asset = frappe.get_doc("Asset", item.asset)
 
-			if asset.calculate_depreciation:
-				depreciate_asset(asset, self.posting_date)
-				asset.reload()
+# 			if asset.calculate_depreciation:
+# 				depreciate_asset(asset, self.posting_date)
+# 				asset.reload()
 
-			fixed_asset_gl_entries = get_gl_entries_on_asset_disposal(
-				asset,
-				item.asset_value,
-				item.get("finance_book") or self.get("finance_book"),
-				self.get("doctype"),
-				self.get("name"),
-				self.get("posting_date"),
-			)
+# 			fixed_asset_gl_entries = get_gl_entries_on_asset_disposal(
+# 				asset,
+# 				item.asset_value,
+# 				item.get("finance_book") or self.get("finance_book"),
+# 				self.get("doctype"),
+# 				self.get("name"),
+# 				self.get("posting_date"),
+# 			)
 
-			asset.db_set("disposal_date", self.posting_date)
+# 			asset.db_set("disposal_date", self.posting_date)
 
-			self.set_consumed_asset_status(asset)
+# 			self.set_consumed_asset_status(asset)
 
-			for gle in fixed_asset_gl_entries:
-				gle["against"] = target_account
-				gl_entries.append(self.get_gl_dict(gle, item=item))
-				target_against.add(gle["account"])
-	else:
-		AssetCapitalization.get_gl_entries_for_consumed_asset_items(self, gl_entries, target_account, target_against, precision)
+# 			for gle in fixed_asset_gl_entries:
+# 				gle["against"] = target_account
+# 				gl_entries.append(self.get_gl_dict(gle, item=item))
+# 				target_against.add(gle["account"])
+# 	else:
+# 		AssetCapitalization.get_gl_entries_for_consumed_asset_items(self, gl_entries, target_account, target_against, precision)
+
+
+class CustomAssetCapitalization(AssetCapitalization):
+	# Overriding Asset Capitalization Doctype to change the Credit Account in Assets Table
+	def get_gl_entries_for_consumed_asset_items(
+			self, gl_entries, target_account, target_against, precision
+		):
+		print("OVERRIDE")
+		if "asset_customizations" in frappe.get_installed_apps():
+			# Consumed Assets
+			for item in self.asset_items:
+				asset = frappe.get_doc("Asset", item.asset)
+
+				if asset.calculate_depreciation:
+					notes = _(
+						"This schedule was created when Asset {0} was consumed through Asset Capitalization {1}."
+					).format(
+						get_link_to_form(asset.doctype, asset.name),
+						get_link_to_form(self.doctype, self.get("name")),
+					)
+					depreciate_asset(asset, self.posting_date, notes)
+					asset.reload()
+
+				fixed_asset_gl_entries = get_gl_entries_on_asset_disposal(
+					asset,
+					item.asset_value,
+					item.get("finance_book") or self.get("finance_book"),
+					self.get("doctype"),
+					self.get("name"),
+					self.get("posting_date"),
+				)
+
+				asset.db_set("disposal_date", self.posting_date)
+
+				self.set_consumed_asset_status(asset)
+
+				for gle in fixed_asset_gl_entries:
+					gle["against"] = target_account
+					gl_entries.append(self.get_gl_dict(gle, item=item))
+					target_against.add(gle["account"])
+		else:
+			AssetCapitalization.get_gl_entries_for_consumed_asset_items(self, gl_entries, target_account, target_against, precision)
+
+
 
 def get_gl_entries_on_asset_disposal(
 	asset, selling_amount=0, finance_book=None, voucher_type=None, voucher_no=None, date=None
@@ -148,11 +195,7 @@ def get_depreciation_accounts(asset_category, company):
 		if not depreciation_expense_account:
 			depreciation_expense_account = accounts[1]
 
-	if (
-		not fixed_asset_account
-		or not accumulated_depreciation_account
-		or not depreciation_expense_account
-	):
+	if not fixed_asset_account or not accumulated_depreciation_account or not depreciation_expense_account:
 		frappe.throw(
 			_("Please set Depreciation related Accounts in Asset Category {0} or Company {1}").format(
 				asset_category, company
