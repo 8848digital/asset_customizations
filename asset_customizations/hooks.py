@@ -114,8 +114,7 @@ override_doctype_class = {
     "Accounting Dimension":"asset_customizations.asset_modification.customizations.accounting_dimension.doc_events.accounting_dimension_override.CustomAccountingDimension",
     "Asset Movement":"asset_customizations.asset_modification.customizations.asset_movement.doc_events.asset_movement_override.CustomAssetMovement",
     "Asset Depreciation Schedule":"asset_customizations.asset_modification.customizations.asset_depreciation_schedule.doc_event.asset_depreciation_schedule_override.CustomAssetDepreciationSchedule",
-	"Asset Value Adjustment": "asset_customizations.asset_modification.customizations.asset_value_adjustment.doc_events.asset_value_adjustment_override.CustomAssetValueAdjustment",
-	"Asset Capitalization": "asset_customizations.asset_modification.customizations.asset_capitalization.doc_events.asset_capitalization_target_account.CustomAssetCapitalization"
+	"Asset Value Adjustment": "asset_customizations.asset_modification.customizations.asset_value_adjustment.doc_events.asset_value_adjustment_override.CustomAssetValueAdjustment"
 }
 
 # Document Events
@@ -224,6 +223,12 @@ doctype_js = {"Asset" : "asset_modification/customizations/asset_value_adjustmen
             "Asset Value Adjustment": "public/js/asset_value_adjustment_override.js",
             "Asset Movement": "asset_modification/customizations/asset_movement/doc_events/asset_movement_override.js"
             }
+
+
+# Overriding Asset Capitalization Doctype to change the Credit Account in Assets Table
+from erpnext.assets.doctype.asset_capitalization.asset_capitalization import AssetCapitalization
+from asset_customizations.asset_modification.customizations.asset_capitalization.doc_events.asset_capitalization_target_account import get_gl_entries_for_consumed_asset_items
+AssetCapitalization.get_gl_entries_for_consumed_asset_items = get_gl_entries_for_consumed_asset_items
 
 # from erpnext.assets.doctype.asset_value_adjustment.asset_value_adjustment import AssetValueAdjustment
 # from asset_customizations.asset_modification.customizations.asset_value_adjustment.doc_events.asset_value_adjustment_override import set_difference_amount_custom,make_depreciation_entry_custom
