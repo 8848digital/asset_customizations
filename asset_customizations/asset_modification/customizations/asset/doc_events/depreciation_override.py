@@ -147,7 +147,11 @@ def _make_journal_entry_for_depreciation(
         field_data = frappe.db.get_value("Asset Depreciation Schedule",
                                          asset_depr_schedule_doc.name, fieldname)
         additional_fields[fieldname] = field_data
-
+        
+    custom_cost_center = frappe.db.get_value("Asset Depreciation Schedule",
+                                         asset_depr_schedule_doc.name, "custom_cost_center")
+    additional_fields["cost_center"] = custom_cost_center
+    
     credit_entry.update(additional_fields)
     debit_entry.update(additional_fields)
 
