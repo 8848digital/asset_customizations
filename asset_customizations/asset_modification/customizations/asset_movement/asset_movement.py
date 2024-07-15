@@ -44,6 +44,9 @@ def on_cancel_reverse_depreciation_schedule(self):
 	asset_depr_schedule_doc = frappe.get_doc("Asset Depreciation Schedule", {"asset": self.assets[0].asset})
  
 	transaction_date = getdate(self.transaction_date)
+ 
+	if not frappe.db.exists("Depreciation Schedule", {"parent": asset_depr_schedule_doc.name, "schedule_date": transaction_date}):
+		return
 
 	depreciation_entry = frappe.db.get_value(
 		"Depreciation Schedule", 
@@ -134,3 +137,82 @@ def sequence_cancel(self):
 
 		if most_recent_record and self.name != most_recent_record['name']:
 			frappe.throw("You can only cancel the most recent record.")
+
+
+@frappe.whitelist()
+def create_journal_entry(**kwargs):
+	asset_name_list = frappe.db.get_all("Asset Movement Item", filters={"parent": kwargs.get("name")}, pluck="asset")
+	transaction_date = getdate(kwargs.get("transaction_date"))
+	for asset_name in asset_name_list:
+		asset_values = frappe.db.get_value("Asset", {"name": asset_name}, "*")
+
+		asset_category_value = frappe.db.get_value("Asset Category Account", 
+												{"parent": asset_values.asset_category,
+												"company_name": asset_values.company},
+												["fixed_asset_account", "accumulated_depreciation_account"],
+            									as_dict=True)
+
+		asset_depr_schedule = frappe.db.get_all("Asset Depreciation Schedule",
+                                          		{"asset":asset_name}, pluck="name")
+  
+		fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
+		old_dimension_value = {}
+		new_dimension_value = {}
+  
+		asset_movement_child_data = frappe.db.get_value("Asset Movement Item", {"parent": kwargs.get("name"), "asset":asset_name}, "*", as_dict= True)
+  
+		for fieldname in fieldnames:
+			old_dimension_value[fieldname] = asset_movement_child_data.get("from_"+fieldname)
+			new_dimension_value[fieldname] = asset_movement_child_data.get("target_"+fieldname)
+
+  
+  
+		for schedule in asset_depr_schedule:
+			accumulated_depreciation_amount = frappe.db.get_value("Depreciation Schedule",
+                       			{"parent": schedule, "schedule_date": transaction_date},
+                          		"accumulated_depreciation_amount")
+
+
+			company = asset_values.company
+			posting_date = transaction_date
+
+			row1 = {
+				"account" : asset_category_value.fixed_asset_account,
+				"debit_in_account_currency": asset_values.total_asset_cost,
+				"cost_center": asset_movement_child_data.target_cost_center
+			}
+			row1.update(new_dimension_value)
+			row2 = {
+				"account" : asset_category_value.fixed_asset_account,
+				"credit_in_account_currency": asset_values.total_asset_cost,
+				"cost_center": asset_movement_child_data.from_cost_center
+			}
+			row2.update(old_dimension_value)
+   
+			row3 = {
+				"account" : asset_category_value.accumulated_depreciation_account,
+				"debit_in_account_currency" : accumulated_depreciation_amount,
+				"cost_center": asset_movement_child_data.from_cost_center
+			}
+			row3.update(old_dimension_value)
+			row4 = {
+				"account" : asset_category_value.accumulated_depreciation_account,
+				"credit_in_account_currency": accumulated_depreciation_amount,
+				"cost_center": asset_movement_child_data.target_cost_center
+			}
+			row4.update(new_dimension_value)
+
+			doc = frappe.get_doc({
+				'doctype': 'Journal Entry',
+				"voucher_type": "Journal Entry",
+				"posting_date": posting_date,
+				"company": company,
+				"remark": f"Asset Movement Entry against {kwargs.get('name')}"
+			})
+			doc.append("accounts", row1)
+			doc.append("accounts", row2)
+			doc.append("accounts", row3)
+			doc.append("accounts", row4)
+			doc.save()
+			doc.submit()
+	return (doc.name)

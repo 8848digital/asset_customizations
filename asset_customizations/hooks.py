@@ -127,6 +127,9 @@ doc_events = {
 		"validate": "asset_customizations.asset_modification.customizations.asset_movement.asset_movement.validate",
 		"before_cancel": "asset_customizations.asset_modification.customizations.asset_movement.asset_movement.before_cancel",
 		"on_cancel": "asset_customizations.asset_modification.customizations.asset_movement.asset_movement.on_cancel",
+	},
+	"Journal Entry": {
+		"on_cancel": "asset_customizations.asset_modification.customizations.journal_entry.journal_entry.on_cancel",
 	}
 }
 

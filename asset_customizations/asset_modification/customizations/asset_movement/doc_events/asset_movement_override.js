@@ -1,6 +1,30 @@
 
 frappe.ui.form.off("Asset Movement", "set_required_fields");
 frappe.ui.form.on("Asset Movement", {
+	refresh: function(frm) {
+		if (!frm.doc.custom_journal_entry){
+			frm.add_custom_button(__("Make Journal Entry"), function(){
+				frappe.confirm('Are you sure you want to proceed?',
+					() => {
+						frappe.call({
+							method: "asset_customizations.asset_modification.customizations.asset_movement.asset_movement.create_journal_entry",
+							args: {
+								"name": frm.doc.name,
+								"transaction_date": frm.doc.transaction_date
+							},
+							callback: function (r) {
+								frm.set_value("custom_journal_entry", r.message)
+								frm.save("Submit")
+							},
+						});
+					}, () => {
+						// action to perform if No is selected
+					})
+				
+			});
+		}
+	},
+
 	set_required_fields: (frm, cdt, cdn) => {
 		let fieldnames_to_be_altered;
 		if (frm.doc.purpose === "Transfer") {
