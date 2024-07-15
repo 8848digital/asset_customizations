@@ -9,7 +9,7 @@ class CustomAssetDepreciationSchedule(AssetDepreciationSchedule):
             fields = frappe.get_list("Accounting Dimension", pluck="name")
             transformed_fields = [f"{field.lower().replace(' ', '_')}" for field in fields]
             self.asset = asset_doc.name
-            self.cost_center = asset_doc.cost_center
+            # self.cost_center = asset_doc.cost_center
             self.finance_book = row.finance_book
             self.finance_book_id = row.idx
             self.opening_accumulated_depreciation = asset_doc.opening_accumulated_depreciation or 0
@@ -23,6 +23,7 @@ class CustomAssetDepreciationSchedule(AssetDepreciationSchedule):
             self.daily_prorata_based = row.daily_prorata_based
             self.shift_based = row.shift_based
             self.status = "Draft"
+            self.custom_cost_center = asset_doc.cost_center
             # Setting dynamic fields
             for field in transformed_fields:
                 setattr(self, field, getattr(asset_doc, field, None))
