@@ -118,6 +118,9 @@ def make_dimension_in_accounting_doctypes(doc, doclist=None):
 
     for doctype in doclist:
         insert_after_field = "dimension_col_break" if (doc_count + 1) % 2 == 0 else "accounting_dimensions_section"
+        set_source_dimension = "source_dimension_col_break" if (doc_count + 1) % 2 != 0 else "accounting_dimensions_section"
+        set_target_dimension = "target_dimension_col_break" if (doc_count + 1) % 2 != 0 else "accounting_dimensions_section_target"
+        
         if doctype in accounting_dimension_doctypes_asset_movement_item:
             # Create two custom fields for specified doctypes needing duplicates
             df_1 = {
@@ -125,10 +128,11 @@ def make_dimension_in_accounting_doctypes(doc, doclist=None):
                 "label": "From " + doc.label,
                 "fieldtype": "Link",
                 "options": doc.document_type,
-                "insert_after": "accounting_dimensions_section",
+                "insert_after": set_source_dimension,
                 "owner": "Administrator",
                 "allow_on_submit": 1 if doctype in repostable_doctypes else 0,
                 "read_only": 1
+                
             }
 
             df_2 = {
@@ -136,7 +140,7 @@ def make_dimension_in_accounting_doctypes(doc, doclist=None):
                 "label": "Target " + doc.label,
                 "fieldtype": "Link",
                 "options": doc.document_type,
-                "insert_after": "dimension_col_break",
+                "insert_after": set_target_dimension,
                 "owner": "Administrator",
                 "allow_on_submit": 1 if doctype in repostable_doctypes else 0,
             }
