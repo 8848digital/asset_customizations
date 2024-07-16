@@ -115,7 +115,8 @@ override_doctype_class = {
     "Asset Movement":"asset_customizations.asset_modification.customizations.asset_movement.doc_events.asset_movement_override.CustomAssetMovement",
     "Asset Depreciation Schedule":"asset_customizations.asset_modification.customizations.asset_depreciation_schedule.doc_event.asset_depreciation_schedule_override.CustomAssetDepreciationSchedule",
 	"Asset Value Adjustment": "asset_customizations.asset_modification.customizations.asset_value_adjustment.doc_events.asset_value_adjustment_override.CustomAssetValueAdjustment",
-	"Asset Capitalization": "asset_customizations.asset_modification.customizations.asset_capitalization.doc_events.asset_capitalization_target_account.CustomAssetCapitalization"
+	"Asset Capitalization": "asset_customizations.asset_modification.customizations.asset_capitalization.doc_events.asset_capitalization_target_account.CustomAssetCapitalization",
+    "Asset Repair": "asset_customizations.asset_modification.customizations.asset_repair.doc_events.asset_repair.AssetRepairMaster"
 }
 
 # Document Events
@@ -132,8 +133,8 @@ doc_events = {
 		"on_cancel": "asset_customizations.asset_modification.customizations.journal_entry.journal_entry.on_cancel",
 	},
     "Asset Repair": {
-		"before_save": "asset_customizations.asset_modification.customizations.asset_repair.asset_repair.before_save",
-        "on_submit": "asset_customizations.asset_modification.customizations.asset_repair.asset_repair.on_submit",
+		"before_save": "asset_customizations.asset_modification.customizations.asset_repair.doc_events.asset_repair.before_save",
+        "on_submit": "asset_customizations.asset_modification.customizations.asset_repair.doc_events.asset_repair.on_submit",
 	}
 }
 
