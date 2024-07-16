@@ -7,18 +7,30 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "test"
+  "test",
+  "item_code"
  ],
  "fields": [
   {
    "fieldname": "test",
    "fieldtype": "Data",
    "label": "test"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Data",
+   "label": "Item Code"
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2024-04-02 17:12:36.818210",
+ "links": [
+  {
+   "link_doctype": "Delivery Note",
+   "link_fieldname": "item_code",
+   "table_fieldname": "items"
+  }
+ ],
+ "modified": "2024-07-15 17:36:52.015636",
  "modified_by": "Administrator",
  "module": "asset_modification",
  "name": "Test",
