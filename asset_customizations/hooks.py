@@ -130,6 +130,10 @@ doc_events = {
 	},
 	"Journal Entry": {
 		"on_cancel": "asset_customizations.asset_modification.customizations.journal_entry.journal_entry.on_cancel",
+	},
+    "Asset Repair": {
+		"before_save": "asset_customizations.asset_modification.customizations.asset_repair.asset_repair.before_save",
+        "on_submit": "asset_customizations.asset_modification.customizations.asset_repair.asset_repair.on_submit",
 	}
 }
 
