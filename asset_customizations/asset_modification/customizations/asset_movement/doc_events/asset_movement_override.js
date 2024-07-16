@@ -17,12 +17,41 @@ frappe.ui.form.on("Asset Movement", {
 								frm.save("Submit")
 							},
 						});
-					}, () => {
-						// action to perform if No is selected
-					})
-				
-			});
+					}
+				)
+			}, __("Create"));
 		}
+		frm.add_custom_button(__('Make Delivery Note'), function() {
+			frappe.confirm('Are you sure you want to proceed?',
+				() => {
+					frappe.call({
+						method: "asset_customizations.asset_modification.customizations.asset_movement.asset_movement.make_delivery_note",
+						args: {
+							"name": frm.doc.name,
+							"transaction_date": frm.doc.transaction_date
+						},
+						callback: function (r) {
+							frappe.model.with_doctype('Delivery Note', function() {
+								var doc = frappe.model.get_new_doc('Delivery Note');
+								doc.set_warehouse = 'Stores - AD';
+								var items = r.message;
+								var child = frappe.model.add_child(doc, 'items');
+
+								items.forEach(function(item) {
+									for (var key in item) {
+										if (item.hasOwnProperty(key)) {
+											child[key] = item[key];
+										}
+									}
+								});
+								frappe.set_route('Form', 'Delivery Note', doc.name);
+							});
+						},
+					});
+				}, () => {
+					// action to perform if No is selected
+			})
+		}, __("Create"));
 	},
 
 	set_required_fields: (frm, cdt, cdn) => {

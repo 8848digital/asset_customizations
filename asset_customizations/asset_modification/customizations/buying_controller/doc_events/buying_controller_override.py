@@ -16,6 +16,9 @@ from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseRece
 
 class CustomPurchaseReceipt(PurchaseReceipt):
     def auto_make_assets(self, asset_items):
+        if self.is_internal_supplier == 1:
+            return
+        
         items_data = get_asset_item_details(asset_items)
         messages = []
         
