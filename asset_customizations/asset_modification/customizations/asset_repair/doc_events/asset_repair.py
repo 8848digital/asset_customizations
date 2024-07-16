@@ -35,7 +35,8 @@ def on_submit(self, method=None):
     details.append(account_debit_data)
 
     account_details = get_unique_accounts(details)
-    create_gl_entry(self, account_details)
+    if self.capitalize_repair_cost == 1:
+        create_gl_entry(self, account_details)
 
 
 def get_fixed_asset_account(self):
