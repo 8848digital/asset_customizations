@@ -1,38 +1,13 @@
-import json
-import math
-
 import frappe
 from frappe import _
 from frappe.utils import (
-	cint,
-	flt,
 	get_datetime,
-	get_last_day,
-	get_link_to_form,
 	getdate,
-	nowdate,
-	today,
-)
-
-import erpnext
-from erpnext.accounts.general_ledger import make_reverse_gl_entries
-from erpnext.assets.doctype.asset.depreciation import (
-	get_comma_separated_links,
-	get_depreciation_accounts,
-	get_disposal_account_and_cost_center,
 )
 from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
-from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
 from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
-	cancel_asset_depr_schedules,
 	convert_draft_asset_depr_schedules_into_active,
-	get_asset_depr_schedule_doc,
-	get_depr_schedule,
-	make_draft_asset_depr_schedules,
-	make_draft_asset_depr_schedules_if_not_present,
-	update_draft_asset_depr_schedules,
 )
-from erpnext.controllers.accounts_controller import AccountsController
  
 from erpnext.assets.doctype.asset.asset import Asset
 

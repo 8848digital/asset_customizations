@@ -1,5 +1,6 @@
+from asset_customizations.asset_modification.customizations.utils.utils import get_asset_depr_schedule_list, update_asset_depr_schedule_index
 import frappe
-from frappe.utils.data import date_diff, getdate
+from frappe.utils.data import getdate
 
 
 def validate(self, method=None):
@@ -32,167 +33,12 @@ def validate_dep_schedule(self):
   
 		next_schedule = None
 		for schedule in asset_depr_schedule_list:
-			if schedule["schedule_date"] > transaction_date:
+			if schedule["schedule_date"] >= transaction_date:
 				next_schedule = schedule
 				break
 		if next_schedule:
 			if next_schedule["journal_entry"]:
 				frappe.throw("Depreciation Entry of Transaction Date is already made")
-
-
-def update_depreciation_schedule(asset_name, asset_depriciation_schedule_name, transaction_date):
-	transaction_date = getdate(transaction_date)
-	asset_available_for_use_date = frappe.db.get_value("Asset", asset_name, "available_for_use_date")
-
-	asset_depr_schedule_list = frappe.db.get_all(
-		"Depreciation Schedule", 
-		filters={"parent": asset_depriciation_schedule_name}, 
-		fields=["schedule_date", "name", "depreciation_amount", "accumulated_depreciation_amount", "journal_entry"], 
-		order_by="schedule_date"
-	)
-
-	previous_schedule = None
-	next_schedule = None
-
-	for schedule in asset_depr_schedule_list:
-		if transaction_date == schedule["schedule_date"]:
-			return
-		if schedule["schedule_date"] < transaction_date:
-			previous_schedule = schedule
-		elif schedule["schedule_date"] > transaction_date:
-			next_schedule = schedule
-			break
-	
-	set_depreciation_schedule(previous_schedule, next_schedule, 
-                              asset_available_for_use_date, transaction_date,
-                              asset_depriciation_schedule_name)
-
-
-def set_depreciation_schedule(
-    previous_schedule,
-    next_schedule,
-    asset_available_for_use_date,
-    transaction_date,
-    asset_depriciation_schedule_name
-    ):
-
-	if not previous_schedule and next_schedule:
-		date_diff_between_schedule = date_diff(next_schedule["schedule_date"], asset_available_for_use_date)
-		date_difference = date_diff(transaction_date, asset_available_for_use_date)
-		
-		dep_amount_for_today = (next_schedule["depreciation_amount"] / date_diff_between_schedule) * date_difference
-		dep_amount_for_next_schedule = next_schedule["depreciation_amount"] - dep_amount_for_today
-				
-		accumulated_depreciation_amount = dep_amount_for_today   
-
-	elif previous_schedule and next_schedule:
-		date_diff_between_schedule = date_diff(next_schedule["schedule_date"], previous_schedule["schedule_date"])
-		date_difference = date_diff(transaction_date, previous_schedule["schedule_date"])
-		
-		dep_amount_for_today = next_schedule["depreciation_amount"] / date_diff_between_schedule * date_difference
-		dep_amount_for_next_schedule = next_schedule["depreciation_amount"] - dep_amount_for_today
-				
-		accumulated_depreciation_amount = previous_schedule["accumulated_depreciation_amount"]+dep_amount_for_today
-	
-	else:
-		return
-
-	asset_depreciation_schedule = frappe.get_doc("Asset Depreciation Schedule", asset_depriciation_schedule_name)
-	asset_depreciation_schedule.append("depreciation_schedule",{
-		"schedule_date": transaction_date,
-		"depreciation_amount": dep_amount_for_today,
-		"accumulated_depreciation_amount": accumulated_depreciation_amount
-	})
-	asset_depreciation_schedule.save()
-
-	frappe.db.set_value("Depreciation Schedule", next_schedule["name"],
-						"depreciation_amount", dep_amount_for_next_schedule)
-	
-	updated_asset_depr_schedule_list = frappe.db.get_all(
-		"Depreciation Schedule", 
-		filters={"parent": asset_depriciation_schedule_name}, 
-		fields=["schedule_date", "name"], 
-		order_by="schedule_date"
-	)
-	
-	for idx, schedule in enumerate(updated_asset_depr_schedule_list):
-		frappe.db.set_value("Depreciation Schedule", schedule["name"], "idx", idx + 1)
-
-
-def on_cancel_reverse_depreciation_schedule(self):
-	asset_depr_schedule_doc = frappe.get_doc("Asset Depreciation Schedule", {"asset": self.assets[0].asset})
- 
-	transaction_date = getdate(self.transaction_date)
- 
-	if not frappe.db.exists("Depreciation Schedule", 
-                         {"parent": asset_depr_schedule_doc.name,
-                          "schedule_date": transaction_date}):
-		return
-
-	depreciation_entry = frappe.db.get_value(
-		"Depreciation Schedule", 
-		{"parent": asset_depr_schedule_doc.name, "schedule_date": transaction_date}, 
-		["name", "depreciation_amount", "accumulated_depreciation_amount", "journal_entry"], 
-		as_dict=True
-	)
-
-	if depreciation_entry["journal_entry"]:
-		journal_entry_doc = frappe.get_doc("Journal Entry", depreciation_entry["journal_entry"])
-		if journal_entry_doc.docstatus == 1:
-			journal_entry_doc.cancel()
-   
-	asset_depr_schedule_list = frappe.db.get_all(
-		"Depreciation Schedule", 
-		filters={"parent": asset_depr_schedule_doc.name}, 
-		fields=["schedule_date", "name", "depreciation_amount",
-          		"accumulated_depreciation_amount", "journal_entry"], 
-		order_by="schedule_date"
-	)
-
-	previous_schedule = None
-	next_schedule = None
-	for schedule in asset_depr_schedule_list:
-		if schedule["schedule_date"] < transaction_date:
-			previous_schedule = schedule
-		elif schedule["schedule_date"] > transaction_date:
-			next_schedule = schedule
-			break
-
-	frappe.get_doc("Depreciation Schedule", depreciation_entry["name"]).cancel()
-	frappe.delete_doc("Depreciation Schedule", depreciation_entry["name"])
-
-	set_depr_schedule_value(previous_schedule, next_schedule, depreciation_entry)
-	update_asset_depr_schedule_index(asset_depr_schedule_doc.name)
-
-
-def set_depr_schedule_value(previous_schedule, next_schedule, depreciation_entry):
-	if not previous_schedule and next_schedule:
-		frappe.db.set_value("Depreciation Schedule", next_schedule["name"], "depreciation_amount", 
-			next_schedule["depreciation_amount"] + depreciation_entry["depreciation_amount"])
-
-	elif previous_schedule and next_schedule:
-		frappe.db.set_value("Depreciation Schedule", next_schedule["name"], "depreciation_amount", 
-			next_schedule["depreciation_amount"] + depreciation_entry["depreciation_amount"])
-		
-		accumulated_depreciation_amount = (previous_schedule["accumulated_depreciation_amount"]+
-											next_schedule["depreciation_amount"]+
-											depreciation_entry["depreciation_amount"])
-
-		frappe.db.set_value("Depreciation Schedule", next_schedule["name"],
-                      		"accumulated_depreciation_amount", accumulated_depreciation_amount)
-
-
-
-def update_asset_depr_schedule_index(asset_depreciation_schedule_name):
-	updated_asset_depr_schedule_list = frappe.db.get_all(
-		"Depreciation Schedule", 
-		filters={"parent": asset_depreciation_schedule_name}, 
-		fields=["schedule_date", "name"], 
-		order_by="schedule_date"
-	)
-
-	for idx, schedule in enumerate(updated_asset_depr_schedule_list):
-		frappe.db.set_value("Depreciation Schedule", schedule["name"], "idx", idx + 1)
 
 
 def sequence_cancel(self):
@@ -217,12 +63,89 @@ def sequence_cancel(self):
                     frappe.throw("You can only cancel the most recent record.")
 
 
+def on_cancel_reverse_depreciation_schedule(self):
+    asset_name_list = frappe.db.get_all("Asset Movement Item", {"parent": self.name}, pluck="asset")
+    transaction_date = getdate(self.transaction_date)
+    for asset in asset_name_list:
+        asset_depr_schedule_list = frappe.db.get_list("Asset Depreciation Schedule", 
+                                                      {"asset": asset}, pluck="name")
+        for asset_depr_schedule in asset_depr_schedule_list:
+            if not frappe.db.exists("Depreciation Schedule",
+                                    {"parent": asset_depr_schedule, "schedule_date": transaction_date}):
+                break
+            
+            depreciation_entry = get_depreciation_entry(asset_depr_schedule, transaction_date)
+            if not depreciation_entry:
+                break
+            try:
+                cancel_journal_entry(depreciation_entry["journal_entry"])
+                reverse_depreciation_entry(asset_depr_schedule, depreciation_entry, transaction_date)
+            except Exception as e:
+                frappe.throw(str(e))
+
+
+def get_depreciation_entry(schedule_name, transaction_date):
+    return frappe.db.get_value(
+        "Depreciation Schedule",
+        {"parent": schedule_name, "schedule_date": transaction_date},
+        ["name", "parent", "schedule_date", "depreciation_amount", "accumulated_depreciation_amount", "journal_entry"],
+        as_dict=True
+    )
+
+
+def cancel_journal_entry(journal_entry_name):
+    if journal_entry_name:
+        journal_entry_doc = frappe.get_doc("Journal Entry", journal_entry_name)
+        if journal_entry_doc.docstatus == 1:
+            journal_entry_doc.cancel()
+                
+                
+def reverse_depreciation_entry(asset_depr_schedule_name, depreciation_entry, transaction_date):
+    asset_depr_schedule_list = get_asset_depr_schedule_list(asset_depr_schedule_name)
+    previous_schedule, next_schedule = previous_and_next_schedules(asset_depr_schedule_list, transaction_date)
+    frappe.get_doc("Depreciation Schedule", depreciation_entry["name"]).cancel()
+    frappe.db.delete("Depreciation Schedule", depreciation_entry["name"])
+    
+    set_depr_schedule_value(previous_schedule, next_schedule, depreciation_entry)
+    update_asset_depr_schedule_index(asset_depr_schedule_name)
+
+
+def previous_and_next_schedules(schedule_list, transaction_date):
+    previous_schedule = None
+    next_schedule = None
+    for schedule in schedule_list:
+
+        if schedule["schedule_date"] < transaction_date:
+            previous_schedule = schedule
+        elif schedule["schedule_date"] > transaction_date:
+            next_schedule = schedule
+            break
+    return previous_schedule, next_schedule
+
+
+def set_depr_schedule_value(previous_schedule, next_schedule, depreciation_entry):
+    if not previous_schedule and next_schedule:
+        frappe.db.set_value("Depreciation Schedule", next_schedule["name"], "depreciation_amount", 
+                            next_schedule["depreciation_amount"] + depreciation_entry["depreciation_amount"])
+    elif previous_schedule and next_schedule:
+        new_dep_amount = next_schedule["depreciation_amount"] + depreciation_entry["depreciation_amount"]
+        frappe.db.set_value("Depreciation Schedule", next_schedule["name"], "depreciation_amount", new_dep_amount)
+        
+        accumulated_depreciation_amount = (
+            previous_schedule["accumulated_depreciation_amount"] + next_schedule["depreciation_amount"]+
+											depreciation_entry["depreciation_amount"]
+        )
+        frappe.db.set_value("Depreciation Schedule", next_schedule["name"], "accumulated_depreciation_amount", accumulated_depreciation_amount)
+
+
 @frappe.whitelist()
 def create_journal_entry(**kwargs):
-	asset_name_list = frappe.db.get_all("Asset Movement Item", 
-                                     filters={"parent": kwargs.get("name")},
-                                     pluck="asset")
+	asset_movemet_name = kwargs.get("name") 
 	transaction_date = getdate(kwargs.get("transaction_date"))
+ 
+	asset_name_list = frappe.db.get_all("Asset Movement Item", 
+                                     filters={"parent": asset_movemet_name},
+                                     pluck="asset")
 	fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
  
 	for asset_name in asset_name_list:
@@ -241,7 +164,7 @@ def create_journal_entry(**kwargs):
 		new_dimension_value = {}
   
 		asset_movement_child_data = frappe.db.get_value("Asset Movement Item",
-                                                  {"parent": kwargs.get("name"), "asset":asset_name},
+                                                  {"parent": asset_movemet_name, "asset":asset_name},
                                                   "*", as_dict= True)
   
 		for fieldname in fieldnames:
@@ -253,49 +176,66 @@ def create_journal_entry(**kwargs):
                        			{"parent": schedule, "schedule_date": transaction_date},
                           		"accumulated_depreciation_amount")
 
-			company = asset_values.company
-			posting_date = transaction_date
+			je_name = set_value_in_journal_entry(asset_values,
+                                                transaction_date,
+                                                asset_category_value,
+                                                asset_movement_child_data,
+                                                new_dimension_value,
+                                                old_dimension_value,
+                                                accumulated_depreciation_amount,
+                                                asset_movemet_name)
+	return je_name
 
-			row1 = {
-				"account" : asset_category_value.fixed_asset_account,
-				"debit_in_account_currency": asset_values.total_asset_cost,
-				"cost_center": asset_movement_child_data.target_cost_center
-			}
-			row1.update(new_dimension_value)
-			row2 = {
-				"account" : asset_category_value.fixed_asset_account,
-				"credit_in_account_currency": asset_values.total_asset_cost,
-				"cost_center": asset_movement_child_data.from_cost_center
-			}
-			row2.update(old_dimension_value)
-   
-			row3 = {
-				"account" : asset_category_value.accumulated_depreciation_account,
-				"debit_in_account_currency" : accumulated_depreciation_amount,
-				"cost_center": asset_movement_child_data.from_cost_center
-			}
-			row3.update(old_dimension_value)
-			row4 = {
-				"account" : asset_category_value.accumulated_depreciation_account,
-				"credit_in_account_currency": accumulated_depreciation_amount,
-				"cost_center": asset_movement_child_data.target_cost_center
-			}
-			row4.update(new_dimension_value)
 
-			doc = frappe.get_doc({
-				'doctype': 'Journal Entry',
-				"voucher_type": "Journal Entry",
-				"posting_date": posting_date,
-				"company": company,
-				"remark": f"Asset Movement Entry against {kwargs.get('name')}"
-			})
-			doc.append("accounts", row1)
-			doc.append("accounts", row2)
-			doc.append("accounts", row3)
-			doc.append("accounts", row4)
-			doc.save()
-			doc.submit()
-	return doc.name
+def set_value_in_journal_entry(asset_values,
+                               transaction_date,
+                               asset_category_value,
+                               asset_movement_child_data,
+                               new_dimension_value,
+                               old_dimension_value,
+                               accumulated_depreciation_amount,
+                               asset_movemet_name):
+    
+    company = asset_values.company
+    posting_date = transaction_date
+    
+    row1 = {
+        "account" : asset_category_value.fixed_asset_account,
+        "debit_in_account_currency": asset_values.total_asset_cost,
+        "cost_center": asset_movement_child_data.target_cost_center
+    }
+    row1.update(new_dimension_value)
+    row2 = {
+        "account" : asset_category_value.fixed_asset_account,
+        "credit_in_account_currency": asset_values.total_asset_cost,
+        "cost_center": asset_movement_child_data.from_cost_center
+    }
+    row2.update(old_dimension_value)
+
+    row3 = {
+        "account" : asset_category_value.accumulated_depreciation_account,
+        "debit_in_account_currency" : accumulated_depreciation_amount,
+        "cost_center": asset_movement_child_data.from_cost_center
+    }
+    row3.update(old_dimension_value)
+    row4 = {
+        "account" : asset_category_value.accumulated_depreciation_account,
+        "credit_in_account_currency": accumulated_depreciation_amount,
+        "cost_center": asset_movement_child_data.target_cost_center
+    }
+    row4.update(new_dimension_value)
+
+    doc = frappe.get_doc({
+        'doctype': 'Journal Entry',
+        "voucher_type": "Journal Entry",
+        "posting_date": posting_date,
+        "company": company,
+        "accounts":[row1, row2, row3, row4],
+        "remark": f"Asset Movement Entry against {asset_movemet_name}"
+    })
+    doc.save()
+    doc.submit()
+    return doc.name
 
 
 @frappe.whitelist()
