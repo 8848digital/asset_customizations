@@ -1,6 +1,5 @@
 import frappe
 from frappe import _
-import erpnext
 
 from erpnext.assets.doctype.asset.depreciation import (
 	depreciate_asset,

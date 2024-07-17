@@ -1,8 +1,7 @@
 
 import frappe
 from frappe import _
-from frappe.model.document import Document
-from frappe.utils import flt, formatdate, getdate
+from frappe.utils import flt
 
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_checks_for_pl_and_bs_accounts,

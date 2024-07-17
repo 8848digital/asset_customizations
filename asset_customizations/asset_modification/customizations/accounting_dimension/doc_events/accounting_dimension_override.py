@@ -1,14 +1,9 @@
-# Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
-# For license information, please see license.txt
-
-
 import json
 
 import frappe
 from frappe import _, scrub
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model import core_doctypes_list
-from frappe.model.document import Document
 from frappe.utils import cstr
 
 from erpnext.accounts.doctype.repost_accounting_ledger.repost_accounting_ledger import (

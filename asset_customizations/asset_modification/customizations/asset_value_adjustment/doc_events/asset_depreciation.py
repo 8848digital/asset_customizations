@@ -6,24 +6,10 @@ import frappe
 from frappe import _
 from frappe.query_builder import Order
 from frappe.query_builder.functions import Max, Min
-from frappe.utils import (
-    add_months,
-    cint,
-    flt,
-    get_first_day,
-    get_last_day,
-    getdate,
-    nowdate,
-    today,
-)
+
 from frappe.utils.data import get_link_to_form
-from frappe.utils.user import get_users_with_role
 from erpnext.assets.doctype.asset.depreciation import *
-import erpnext
-from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
-    get_checks_for_pl_and_bs_accounts,
-)
-from erpnext.accounts.doctype.journal_entry.journal_entry import make_reverse_journal_entry
+
 from erpnext.assets.doctype.asset.depreciation import scrap_asset
 
 @frappe.whitelist()
