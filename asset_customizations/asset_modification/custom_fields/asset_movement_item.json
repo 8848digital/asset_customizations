@@ -1,0 +1,45 @@
+{
+    "Asset Movement item": [
+     {
+      "fieldname": "custom_target_column_break",
+      "fieldtype": "Column Break",
+      "insert_after": "accounting_dimensions_target",
+      "module": "asset_modification"
+     },
+     {
+      "fieldname": "custom_source_column_break",
+      "fieldtype": "Column Break",
+      "insert_after": "accounting_dimensions_source",
+      "module": "asset_modification"
+     },
+     {
+      "fieldname": "accounting_dimensions_target",
+      "fieldtype": "Section Break",
+      "insert_after": "custom_from_cost_center",
+      "module": "asset_modification"
+     },
+     {
+      "fieldname": "custom_from_cost_center",
+      "fieldtype": "Link",
+      "options": "Cost Center",
+      "label": "From Cost Center",
+      "insert_after": "custom_from_cost_center",
+      "module": "asset_modification"
+     },
+     {
+      "fieldname": "custom_target_cost_center",
+      "fieldtype": "Link",
+      "options": "Cost Center",
+      "label": "Target Cost Center",
+      "insert_after": "custom_target_column_break",
+      "module": "asset_modification"
+     },
+     {
+      "fieldname": "accounting_dimensions_source",
+      "fieldtype": "Section Break",
+      "label": "Accounting Dimensions Source",
+      "insert_after": "to_employee",
+      "module": "asset_modification"
+     }
+    ]
+}
