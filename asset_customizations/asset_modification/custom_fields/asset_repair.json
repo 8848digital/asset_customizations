@@ -1,0 +1,18 @@
+{
+    "Asset Repair": [
+     {
+      "fieldname": "custom_section_break_auvs5",
+      "fieldtype": "Section Break",
+      "insert_after": "purchase_invoice_data",
+      "module": "asset_modification"
+     },
+     {
+      "fieldname": "purchase_invoice_data",
+      "fieldtype": "Table",
+      "insert_after": "accounting_details",
+      "options": "Asset Repair Cost",
+      "label": "Purchase Invoice Data",
+      "module": "asset_modification"
+     }
+    ]
+}

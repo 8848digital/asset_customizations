@@ -1,0 +1,20 @@
+{
+    "Asset": [
+     {
+      "fieldname": "custom_component_asset",
+      "fieldtype": "Check",
+      "insert_after": "disposal_date",
+      "label": "Component Asset",
+      "module": "asset_modification"
+     },
+     {
+      "fieldname": "custom_parent_asset",
+      "fieldtype": "Link",
+      "options": "Parent Asset",
+      "insert_after": "custom_component_asset",
+      "label": "Parent Asset",
+      "module": "asset_modification",
+      "depends_on": "eval: doc.custom_component_asset;"
+     }
+    ]
+}

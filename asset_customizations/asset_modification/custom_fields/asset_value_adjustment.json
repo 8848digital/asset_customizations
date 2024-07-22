@@ -1,0 +1,13 @@
+{
+    "Asset Value Adjustment": [
+     {
+      "fieldname": "custom_difference_account",
+      "fieldtype": "Link",
+      "insert_after": "difference_amount",
+      "options": "Account",
+      "label": "Difference Account",
+      "module": "asset_modification",
+      "reqd": 1
+     }
+    ]
+}

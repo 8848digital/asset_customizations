@@ -1,0 +1,25 @@
+{
+    "Asset Depreciation Schedule": [
+     {
+      "fieldname": "dimension_col_break",
+      "fieldtype": "Column Break",
+      "insert_after": "custom_from_cost_center",
+      "module": "asset_modification"
+     },
+     {
+      "fieldname": "accounting_dimensions_section",
+      "fieldtype": "Section Break",
+      "label": "Accounting Dimensions",
+      "insert_after": "expected_value_after_useful_life",
+      "module": "asset_modification"
+     },
+     {
+      "fieldname": "custom_cost_center",
+      "fieldtype": "Link",
+      "insert_after": "accounting_dimensions_section",
+      "options": "Cost Center",
+      "label": "Cost Center",
+      "module": "asset_modification"
+     }
+    ]
+}

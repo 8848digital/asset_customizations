@@ -1,0 +1,13 @@
+{
+    "Asset Movement": [
+     {
+      "fieldname": "custom_journal_entry",
+      "fieldtype": "Link",
+      "insert_after": "transaction_date",
+      "options": "Journal Entry",
+      "label": "Journal Entry",
+      "module": "asset_modification",
+      "depends_on": "eval:doc.docstatus==1;"
+     }
+    ]
+}

@@ -33,7 +33,6 @@ frappe.ui.form.on("Asset Movement", {
 						callback: function (r) {
 							frappe.model.with_doctype('Delivery Note', function() {
 								var doc = frappe.model.get_new_doc('Delivery Note');
-								doc.set_warehouse = 'Stores - AD';
 								var items = r.message;
 								var child = frappe.model.add_child(doc, 'items');
 
