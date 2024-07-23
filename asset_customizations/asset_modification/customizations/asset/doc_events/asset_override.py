@@ -13,22 +13,13 @@ from erpnext.assets.doctype.asset.asset import Asset
 
 class CustomAsset(Asset):
     def on_submit(self):
-        if "asset_customizations" in frappe.get_installed_apps():
-            self.validate_in_use_date()
-            self.make_asset_movement()
-            if self.calculate_depreciation and not self.split_from:
-                convert_draft_asset_depr_schedules_into_active(self)
-            self.set_status()
-            add_asset_activity(self.name, _("Asset submitted"))
-        else:
-            self.validate_in_use_date()
-            self.make_asset_movement()
-            if not self.booked_fixed_asset and self.validate_make_gl_entry():
-                self.make_gl_entries()
-            if self.calculate_depreciation and not self.split_from:
-                convert_draft_asset_depr_schedules_into_active(self)
-            self.set_status()
-            add_asset_activity(self.name, _("Asset submitted"))
+        self.validate_in_use_date()
+        self.make_asset_movement()
+        if self.calculate_depreciation and not self.split_from:
+            convert_draft_asset_depr_schedules_into_active(self)
+        self.set_status()
+        add_asset_activity(self.name, _("Asset submitted"))
+
 
     def make_asset_movement(self):
         reference_doctype = "Purchase Receipt" if self.purchase_receipt else "Purchase Invoice"
@@ -40,23 +31,20 @@ class CustomAsset(Asset):
             )
             transaction_date = get_datetime(f"{posting_date} {posting_time}")
 
-        fields = frappe.get_list("Accounting Dimension", pluck="name")
-        transformed_fields = [f"target_{field.lower().replace(' ', '_')}" for field in fields]
+        fields = frappe.get_list("Accounting Dimension", pluck="fieldname")
+        transformed_fields = [f"target_{field}" for field in fields]
 
-        # Create dynamic dictionary for assets
-        assets_dict = {
+        assets = [{
             "asset": self.name,
             "asset_name": self.asset_name,
             "target_location": self.location,
             "to_employee": self.custodian,
             "custom_target_cost_center": self.cost_center
-        }
+        }]
 
         for field in transformed_fields:
             original_fieldname = field.replace("target_", "")
-            assets_dict[field] = getattr(self, original_fieldname, None)
-
-        assets = [assets_dict]
+            assets[0][field] = getattr(self, original_fieldname, None)
 
         asset_movement = frappe.get_doc(
             {
@@ -72,6 +60,7 @@ class CustomAsset(Asset):
         ).insert()
         asset_movement.submit()
 
+
 @frappe.whitelist()
 def make_asset_movement(assets, purpose=None):
     import json
@@ -84,13 +73,12 @@ def make_asset_movement(assets, purpose=None):
 
     asset_movement = frappe.new_doc("Asset Movement")
     asset_movement.quantity = len(assets)
-    
-    for asset_data in assets:
-        asset = frappe.get_doc("Asset", asset_data.get("name"))
+    for asset in assets:
+        asset = frappe.get_doc("Asset", asset.get("name"))
         asset_movement.company = asset.get("company")
         
-        fields = frappe.get_list("Accounting Dimension", pluck="name")
-        transformed_fields = [f"from_{field.lower().replace(' ', '_')}" for field in fields]
+        fields = frappe.get_list("Accounting Dimension", pluck="fieldname")
+        transformed_fields = [f"from_{field}" for field in fields]
         
         asset_dict = {
             "asset": asset.get("name"),
