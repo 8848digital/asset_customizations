@@ -36,7 +36,7 @@ erpnext.asset.scrap_asset = function (frm) {
                     "scrap_date": values.scrap_date,
                     "purchase_date": frm.doc.purchase_date
                 },
-                method: "asset_customizations.asset_modification.customizations.asset.asset.asset_scrap_date",
+                method: "asset_customizations.asset_modification.customizations.asset.asset.asset_scrap_date_validation",
                 callback: function(r) {
                     cur_frm.reload_doc();
                     d.hide();

@@ -5,7 +5,7 @@ from frappe.utils import get_link_to_form
 
 from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
 from erpnext.assets.doctype.asset_movement.asset_movement import AssetMovement
-from asset_customizations.asset_modification.customizations.asset.doc_events.depreciation_override import make_depreciation_entry
+from asset_customizations.asset_modification.customizations.asset.depreciation_override import make_depreciation_entry
 from frappe.utils.data import date_diff, getdate
 
 
