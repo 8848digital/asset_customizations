@@ -118,6 +118,7 @@ def create_gl_entry(self, account_details):
         ge.debit_in_transaction_currency = entry["debit_in_account_currency"]
         ge.credit_in_transaction_currency = entry["credit_in_account_currency"]
         ge.posting_date = datetime.now().date()
+        ge.cost_center = self.cost_center
 
         fiscal_year = frappe.qb.DocType('Fiscal Year')
         fiscal_year_query = frappe.qb.from_(fiscal_year)\
