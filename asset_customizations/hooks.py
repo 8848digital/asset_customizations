@@ -60,7 +60,7 @@ override_whitelisted_methods = {
 "erpnext.assets.doctype.asset.depreciation.make_depreciation_entry" : "asset_customizations.asset_modification.customizations.asset.doc_events.depreciation_override.make_depreciation_entry"
 }
 
-doctype_js = {"Asset" : "asset_modification/customizations/asset_value_adjustment/doc_events/asset.js",
+doctype_js = {"Asset" : "asset_modification/customizations/asset/asset.js",
             "Asset Value Adjustment": "public/js/asset_value_adjustment_override.js",
             "Asset Movement": "asset_modification/customizations/asset_movement/doc_events/asset_movement_override.js"
             }

@@ -21,7 +21,7 @@ def make_depreciation_entry(
     sch_end_idx=None,
     credit_and_debit_accounts=None,
     depreciation_cost_center_and_depreciation_series=None,
-    accounting_dimensions=None
+    accounting_dimensions=None,
 ):
     frappe.has_permission("Journal Entry", throw=True)
     
@@ -141,19 +141,7 @@ def _make_journal_entry_for_depreciation(
                 }
             )
 
-    fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
-    additional_fields = {}
-    for fieldname in fieldnames:
-        field_data = frappe.db.get_value("Asset Depreciation Schedule",
-                                         asset_depr_schedule_doc.name, fieldname)
-        additional_fields[fieldname] = field_data
-        
-    custom_cost_center = frappe.db.get_value("Asset Depreciation Schedule",
-                                         asset_depr_schedule_doc.name, "custom_cost_center")
-    additional_fields["cost_center"] = custom_cost_center
-    
-    credit_entry.update(additional_fields)
-    debit_entry.update(additional_fields)
+    update_dimension_fields(asset_depr_schedule_doc.name, credit_entry, debit_entry)
 
     je.append("accounts", credit_entry)
     je.append("accounts", debit_entry)
@@ -209,3 +197,19 @@ def get_depreciation_accounts(asset_category, company):
         )
 
     return fixed_asset_account, accumulated_depreciation_account, depreciation_expense_account
+
+
+def update_dimension_fields(asset_depr_schedule_doc_name, credit_entry, debit_entry):
+    fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
+    additional_fields = {}
+    for fieldname in fieldnames:
+        field_data = frappe.db.get_value("Asset Depreciation Schedule",
+                                         asset_depr_schedule_doc_name, fieldname)
+        additional_fields[fieldname] = field_data
+        
+    custom_cost_center = frappe.db.get_value("Asset Depreciation Schedule",
+                                         asset_depr_schedule_doc_name, "custom_cost_center")
+    additional_fields["cost_center"] = custom_cost_center
+    
+    credit_entry.update(additional_fields)
+    debit_entry.update(additional_fields)

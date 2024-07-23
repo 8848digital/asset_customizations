@@ -6,8 +6,8 @@ from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_sched
 
 class CustomAssetDepreciationSchedule(AssetDepreciationSchedule):
     def set_draft_asset_depr_schedule_details(self, asset_doc, row):
-            fields = frappe.get_list("Accounting Dimension", pluck="name")
-            transformed_fields = [f"{field.lower().replace(' ', '_')}" for field in fields]
+            fields = frappe.get_list("Accounting Dimension", pluck="fieldname")
+            
             self.asset = asset_doc.name
             # self.cost_center = asset_doc.cost_center
             self.finance_book = row.finance_book
@@ -24,8 +24,9 @@ class CustomAssetDepreciationSchedule(AssetDepreciationSchedule):
             self.shift_based = row.shift_based
             self.status = "Draft"
             self.custom_cost_center = asset_doc.cost_center
+            
             # Setting dynamic fields
-            for field in transformed_fields:
+            for field in fields:
                 setattr(self, field, getattr(asset_doc, field, None))
 
 

@@ -23,7 +23,7 @@
       "fieldtype": "Link",
       "options": "Cost Center",
       "label": "From Cost Center",
-      "insert_after": "custom_from_cost_center",
+      "insert_after": "custom_source_column_break",
       "module": "asset_modification"
      },
      {

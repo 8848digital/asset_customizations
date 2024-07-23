@@ -11,14 +11,16 @@ from frappe.utils.data import date_diff, getdate
 
 class CustomAssetMovement(AssetMovement):
 	def set_latest_location_and_custodian_in_asset(self):
-		fields = frappe.get_list("Accounting Dimension", pluck="name")
-		transformed_fields = [f"target_{field.lower().replace(' ', '_')}" for field in fields]
+		fields = frappe.get_list("Accounting Dimension", pluck="fieldname")
+		transformed_fields = [f"target_{field}" for field in fields]
+		field_mapping = {}
+		current_values = {}
+		for tf in transformed_fields:
+			field_mapping[tf] = tf.split('_', 1)[1]
+			if fields:
+				current_values[tf] = ""
 
-		# Create dynamic field mapping
-		field_mapping = {tf: tf.split('_', 1)[1] for tf in transformed_fields}
-
-		current_values = {field: "" for field in transformed_fields} if fields else {}
-
+		current_location, current_employee = "", ""
 		cond = "1=1"
 
 		for d in self.assets:
