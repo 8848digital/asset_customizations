@@ -6,10 +6,6 @@ app_email = "manoj@8848digital.com"
 app_license = "MIT"
 
 
-from erpnext.assets.doctype.asset import depreciation
-from asset_customizations.asset_modification.customizations.asset.doc_events.depreciation_override import _make_journal_entry_for_depreciation
-depreciation._make_journal_entry_for_depreciation = _make_journal_entry_for_depreciation
-
 from erpnext.assets.report.fixed_asset_register import fixed_asset_register
 from asset_customizations.asset_modification.customizations.report.fixed_asset_registry import get_data, get_columns
 fixed_asset_register.get_columns = get_columns
@@ -23,11 +19,11 @@ after_migrate = "asset_customizations.migrate.after_migrate"
 
 override_doctype_class = {
 	"Purchase Receipt":"asset_customizations.asset_modification.customizations.buying_controller.doc_events.buying_controller_override.CustomPurchaseReceipt",
-    "Asset":"asset_customizations.asset_modification.customizations.asset.doc_events.asset_override.CustomAsset",
-    "Accounting Dimension":"asset_customizations.asset_modification.customizations.accounting_dimension.doc_events.accounting_dimension_override.CustomAccountingDimension",
+    "Asset":"asset_customizations.asset_modification.customizations.asset.asset_override.CustomAsset",
+    "Accounting Dimension":"asset_customizations.asset_modification.customizations.accounting_dimension.accounting_dimension_override.CustomAccountingDimension",
     "Asset Movement":"asset_customizations.asset_modification.customizations.asset_movement.doc_events.asset_movement_override.CustomAssetMovement",
     "Asset Depreciation Schedule":"asset_customizations.asset_modification.customizations.asset_depreciation_schedule.doc_event.asset_depreciation_schedule_override.CustomAssetDepreciationSchedule",
-	"Asset Value Adjustment": "asset_customizations.asset_modification.customizations.asset_value_adjustment.doc_events.asset_value_adjustment_override.CustomAssetValueAdjustment",
+	"Asset Value Adjustment": "asset_customizations.asset_modification.customizations.asset_value_adjustment.asset_value_adjustment_override.CustomAssetValueAdjustment",
 	"Asset Capitalization": "asset_customizations.asset_modification.customizations.asset_capitalization.doc_events.asset_capitalization_target_account.CustomAssetCapitalization",
     "Asset Repair": "asset_customizations.asset_modification.customizations.asset_repair.doc_events.asset_repair.AssetRepairMaster"
 }
@@ -56,12 +52,13 @@ doc_events = {
 # ------------------------------
 #
 override_whitelisted_methods = {
-"erpnext.assets.doctype.asset.asset.make_asset_movement" : "asset_customizations.asset_modification.customizations.asset.doc_events.asset_override.make_asset_movement",
-"erpnext.assets.doctype.asset.depreciation.make_depreciation_entry" : "asset_customizations.asset_modification.customizations.asset.doc_events.depreciation_override.make_depreciation_entry"
+"erpnext.assets.doctype.asset.asset.make_asset_movement" : "asset_customizations.asset_modification.customizations.asset.asset_override.make_asset_movement",
+"erpnext.assets.doctype.asset.depreciation.make_depreciation_entry" : "asset_customizations.asset_modification.customizations.asset.depreciation_override.make_depreciation_entry",
+"erpnext.assets.doctype.asset.depreciation.scrap_asset" : "asset_customizations.asset_modification.customizations.asset.depreciation_override.scrap_asset"
 }
 
 doctype_js = {"Asset" : "asset_modification/customizations/asset/asset.js",
-            "Asset Value Adjustment": "public/js/asset_value_adjustment_override.js",
+            "Asset Value Adjustment": "asset_modification/customizations/asset_value_adjustment/asset_value_adjustment_override.js",
             "Asset Movement": "asset_modification/customizations/asset_movement/doc_events/asset_movement_override.js"
             }
 

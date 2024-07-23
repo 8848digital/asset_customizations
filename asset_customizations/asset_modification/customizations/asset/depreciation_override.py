@@ -11,6 +11,9 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 )
 
 from erpnext.assets.doctype.asset.depreciation import get_credit_and_debit_accounts_for_asset_category_and_company,_make_journal_entry_for_depreciation
+    
+from frappe.utils.data import get_link_to_form
+from erpnext.assets.doctype.asset.depreciation import *
 
 
 @frappe.whitelist()
@@ -154,54 +157,16 @@ def _make_journal_entry_for_depreciation(
 
     if not je.meta.get_workflow():
         je.submit()
+        asset.reload()
         idx = cint(asset_depr_schedule_doc.finance_book_id)
         row = asset.get("finance_books")[idx - 1]
         row.value_after_depreciation -= depr_schedule.depreciation_amount
         row.db_update()
 
 
-def get_depreciation_accounts(asset_category, company):
-    fixed_asset_account = accumulated_depreciation_account = depreciation_expense_account = None
-
-    accounts = frappe.db.get_value(
-        "Asset Category Account",
-        filters={"parent": asset_category, "company_name": company},
-        fieldname=[
-            "fixed_asset_account",
-            "accumulated_depreciation_account",
-            "depreciation_expense_account",
-        ],
-        as_dict=1,
-    )
-
-    if accounts:
-        fixed_asset_account = accounts.fixed_asset_account
-        accumulated_depreciation_account = accounts.accumulated_depreciation_account
-        depreciation_expense_account = accounts.depreciation_expense_account
-
-    if not accumulated_depreciation_account or not depreciation_expense_account:
-        accounts = frappe.get_cached_value(
-            "Company", company, ["accumulated_depreciation_account", "depreciation_expense_account"]
-        )
-
-        if not accumulated_depreciation_account:
-            accumulated_depreciation_account = accounts[0]
-        if not depreciation_expense_account:
-            depreciation_expense_account = accounts[1]
-
-    if not fixed_asset_account or not accumulated_depreciation_account or not depreciation_expense_account:
-        frappe.throw(
-            _("Please set Depreciation related Accounts in Asset Category {0} or Company {1}").format(
-                asset_category, company
-            )
-        )
-
-    return fixed_asset_account, accumulated_depreciation_account, depreciation_expense_account
-
-
 def update_dimension_fields(asset_depr_schedule_doc_name, credit_entry, debit_entry):
-    fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
     additional_fields = {}
+    fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
     for fieldname in fieldnames:
         field_data = frappe.db.get_value("Asset Depreciation Schedule",
                                          asset_depr_schedule_doc_name, fieldname)
@@ -213,3 +178,46 @@ def update_dimension_fields(asset_depr_schedule_doc_name, credit_entry, debit_en
     
     credit_entry.update(additional_fields)
     debit_entry.update(additional_fields)
+    
+
+@frappe.whitelist()
+def scrap_asset(asset_name, scrap_date):
+    asset = frappe.get_doc("Asset", asset_name)
+
+    if asset.docstatus != 1:
+        frappe.throw(_("Asset {0} must be submitted").format(asset.name))
+    elif asset.status in ("Cancelled", "Sold", "Scrapped", "Capitalized", "Decapitalized"):
+        frappe.throw(_("Asset {0} cannot be scrapped, as it is already {1}").format(asset.name, asset.status))
+
+    date = scrap_date
+
+    notes = _("This schedule was created when Asset {0} was scrapped.").format(
+        get_link_to_form(asset.doctype, asset.name)
+    )
+
+    depreciate_asset(asset, date, notes)
+    asset.reload()
+
+    depreciation_series = frappe.get_cached_value("Company", asset.company, "series_for_depreciation_entry")
+
+    je = frappe.new_doc("Journal Entry")
+    je.voucher_type = "Journal Entry"
+    je.naming_series = depreciation_series
+    je.posting_date = date
+    je.company = asset.company
+    je.remark = f"Scrap Entry for asset {asset_name}"
+
+    for entry in get_gl_entries_on_asset_disposal(asset, date):
+        entry.update({"reference_type": "Asset", "reference_name": asset_name})
+        je.append("accounts", entry)
+
+    je.flags.ignore_permissions = True
+    je.submit()
+
+    frappe.db.set_value("Asset", asset_name, "disposal_date", date)
+    frappe.db.set_value("Asset", asset_name, "journal_entry_for_scrap", je.name)
+    asset.set_status("Scrapped")
+
+    add_asset_activity(asset_name, _("Asset scrapped"))
+
+    frappe.msgprint(_("Asset scrapped via Journal Entry {0}").format(je.name))

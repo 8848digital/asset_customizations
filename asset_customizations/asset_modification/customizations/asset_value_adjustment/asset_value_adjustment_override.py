@@ -9,6 +9,7 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 from erpnext.assets.doctype.asset.depreciation import get_depreciation_accounts
 from erpnext.assets.doctype.asset_value_adjustment.asset_value_adjustment import AssetValueAdjustment
 
+
 class CustomAssetValueAdjustment(AssetValueAdjustment):
     def set_difference_amount(self):
         if "asset_customizations" in frappe.get_installed_apps():
