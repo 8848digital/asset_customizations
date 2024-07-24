@@ -127,7 +127,7 @@ def create_gl_entry(self, account_details):
         for data in fiscal_year_query:
             fiscal_year_value = data["name"]
         ge.fiscal_year = fiscal_year_value
-        ge.submit()
+        ge.save(ignore_permissions=True)
 
 class AssetRepairMaster(AssetRepair):
     def before_submit(self):
