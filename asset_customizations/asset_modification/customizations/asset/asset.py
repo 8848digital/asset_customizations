@@ -4,7 +4,7 @@ from frappe.utils import getdate, today
 
 
 @frappe.whitelist()
-def asset_scrap_date_validation(asset_name, scrap_date, purchase_date):
+def asset_scrap_date_validation(asset_name, scrap_date, purchase_date, calculate_depreciation):
     scrap_date = getdate(scrap_date)
     today_date = getdate(today())
     purchase_date = getdate(purchase_date)
@@ -13,7 +13,11 @@ def asset_scrap_date_validation(asset_name, scrap_date, purchase_date):
         frappe.throw("Future Date Is Not Allowed")
     elif scrap_date < purchase_date:
         frappe.throw("Scrap Date Cannot Be Before Purchase Date")
-    
+
+    if calculate_depreciation == "0" and scrap_date >= purchase_date:
+        scrap_asset(asset_name, scrap_date)
+        return
+
     depriciation_list = frappe.db.get_all("Asset Depreciation Schedule", {"asset": asset_name}, pluck="name")
     for depriciation in depriciation_list:
         asset_depr_schedule_list = frappe.db.get_all(

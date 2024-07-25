@@ -34,7 +34,8 @@ erpnext.asset.scrap_asset = function (frm) {
                 args: {
                     "asset_name":frm.doc.name,
                     "scrap_date": values.scrap_date,
-                    "purchase_date": frm.doc.purchase_date
+                    "purchase_date": frm.doc.purchase_date,
+                    "calculate_depreciation": frm.doc.calculate_depreciation
                 },
                 method: "asset_customizations.asset_modification.customizations.asset.asset.asset_scrap_date_validation",
                 callback: function(r) {

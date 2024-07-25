@@ -140,51 +140,56 @@ def set_depr_schedule_value(previous_schedule, next_schedule, depreciation_entry
 
 @frappe.whitelist()
 def create_journal_entry(**kwargs):
-	asset_movemet_name = kwargs.get("name") 
-	transaction_date = getdate(kwargs.get("transaction_date"))
- 
-	asset_name_list = frappe.db.get_all("Asset Movement Item", 
-                                     filters={"parent": asset_movemet_name},
-                                     pluck="asset")
-	fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
- 
-	for asset_name in asset_name_list:
-		asset_values = frappe.db.get_value("Asset", {"name": asset_name}, "*")
+    asset_movemet_name = kwargs.get("name") 
+    transaction_date = getdate(kwargs.get("transaction_date"))
 
-		asset_category_value = frappe.db.get_value("Asset Category Account", 
-												{"parent": asset_values.asset_category,
-												"company_name": asset_values.company},
-												["fixed_asset_account", "accumulated_depreciation_account"],
-            									as_dict=True)
+    asset_name_list = frappe.db.get_all("Asset Movement Item", 
+                                        filters={"parent": asset_movemet_name},
+                                        pluck="asset")
+    fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
+    for asset_name in asset_name_list:
+        asset_values = frappe.db.get_value("Asset", {"name": asset_name}, "*")
 
-		asset_depr_schedule = frappe.db.get_all("Asset Depreciation Schedule",
-                                          		{"asset":asset_name}, pluck="name")
-  
-		old_dimension_value = {}
-		new_dimension_value = {}
-  
-		asset_movement_child_data = frappe.db.get_value("Asset Movement Item",
-                                                  {"parent": asset_movemet_name, "asset":asset_name},
-                                                  "*", as_dict= True)
-  
-		for fieldname in fieldnames:
-			old_dimension_value[fieldname] = asset_movement_child_data.get("from_"+fieldname)
-			new_dimension_value[fieldname] = asset_movement_child_data.get("target_"+fieldname)
-  
-		for schedule in asset_depr_schedule:
-			accumulated_depreciation_amount = frappe.db.get_value("Depreciation Schedule",
-                       			{"parent": schedule, "schedule_date": transaction_date},
-                          		"accumulated_depreciation_amount")
+        asset_category_value = frappe.db.get_value("Asset Category Account",
+                                                {"parent": asset_values.asset_category,
+                                                "company_name": asset_values.company},
+                                                ["fixed_asset_account", "accumulated_depreciation_account"],
+                                                as_dict=True)
+        asset_depr_schedule = frappe.db.get_all("Asset Depreciation Schedule",
+                                                {"asset":asset_name}, pluck="name")
 
-			je_name = set_value_in_journal_entry(asset_values,
+        old_dimension_value = {}
+        new_dimension_value = {}
+        asset_movement_child_data = frappe.db.get_value("Asset Movement Item",
+                                                    {"parent": asset_movemet_name, "asset":asset_name},
+                                                    "*", as_dict= True)
+
+        for fieldname in fieldnames:
+            old_dimension_value[fieldname] = asset_movement_child_data.get("from_"+fieldname)
+            new_dimension_value[fieldname] = asset_movement_child_data.get("target_"+fieldname)
+        if asset_values.calculate_depreciation:
+            for schedule in asset_depr_schedule:
+                accumulated_depreciation_amount = frappe.db.get_value("Depreciation Schedule",
+                                    {"parent": schedule, "schedule_date": transaction_date},
+                                    "accumulated_depreciation_amount")
+
+                return set_value_in_journal_entry(asset_values,
+                                                    transaction_date,
+                                                    asset_category_value,
+                                                    asset_movement_child_data,
+                                                    new_dimension_value,
+                                                    old_dimension_value,
+                                                    accumulated_depreciation_amount,
+                                                    asset_movemet_name)
+        else:
+            return set_value_in_journal_entry(asset_values,
                                                 transaction_date,
                                                 asset_category_value,
                                                 asset_movement_child_data,
                                                 new_dimension_value,
                                                 old_dimension_value,
-                                                accumulated_depreciation_amount,
+                                                None,
                                                 asset_movemet_name)
-	return je_name
 
 
 def set_value_in_journal_entry(asset_values,
@@ -198,39 +203,54 @@ def set_value_in_journal_entry(asset_values,
     
     company = asset_values.company
     posting_date = transaction_date
-    
-    row1 = {
-        "account" : asset_category_value.fixed_asset_account,
-        "debit_in_account_currency": asset_values.total_asset_cost,
-        "cost_center": asset_movement_child_data.target_cost_center
-    }
-    row1.update(new_dimension_value)
-    row2 = {
-        "account" : asset_category_value.fixed_asset_account,
-        "credit_in_account_currency": asset_values.total_asset_cost,
-        "cost_center": asset_movement_child_data.from_cost_center
-    }
-    row2.update(old_dimension_value)
+    if accumulated_depreciation_amount:
+        row1 = {
+            "account" : asset_category_value.fixed_asset_account,
+            "debit_in_account_currency": asset_values.total_asset_cost,
+            "cost_center": asset_movement_child_data.target_cost_center
+        }
+        row1.update(new_dimension_value)
+        row2 = {
+            "account" : asset_category_value.fixed_asset_account,
+            "credit_in_account_currency": asset_values.total_asset_cost,
+            "cost_center": asset_movement_child_data.from_cost_center
+        }
+        row2.update(old_dimension_value)
 
-    row3 = {
-        "account" : asset_category_value.accumulated_depreciation_account,
-        "debit_in_account_currency" : accumulated_depreciation_amount,
-        "cost_center": asset_movement_child_data.from_cost_center
-    }
-    row3.update(old_dimension_value)
-    row4 = {
-        "account" : asset_category_value.accumulated_depreciation_account,
-        "credit_in_account_currency": accumulated_depreciation_amount,
-        "cost_center": asset_movement_child_data.target_cost_center
-    }
-    row4.update(new_dimension_value)
-
+        row3 = {
+            "account" : asset_category_value.accumulated_depreciation_account,
+            "debit_in_account_currency" : accumulated_depreciation_amount,
+            "cost_center": asset_movement_child_data.from_cost_center
+        }
+        row3.update(old_dimension_value)
+        row4 = {
+            "account" : asset_category_value.accumulated_depreciation_account,
+            "credit_in_account_currency": accumulated_depreciation_amount,
+            "cost_center": asset_movement_child_data.target_cost_center
+        }
+        row4.update(new_dimension_value)
+        rows = [row1, row2, row3, row4]
+    else:
+        row1 = {
+            "account" : asset_category_value.fixed_asset_account,
+            "debit_in_account_currency": asset_values.total_asset_cost,
+            "cost_center": asset_movement_child_data.target_cost_center
+        }
+        row1.update(new_dimension_value)
+        row2 = {
+            "account" : asset_category_value.fixed_asset_account,
+            "credit_in_account_currency": asset_values.total_asset_cost,
+            "cost_center": asset_movement_child_data.from_cost_center
+        }
+        row2.update(old_dimension_value)
+        rows = [row1, row2]
+        
     doc = frappe.get_doc({
         'doctype': 'Journal Entry',
         "voucher_type": "Journal Entry",
         "posting_date": posting_date,
         "company": company,
-        "accounts":[row1, row2, row3, row4],
+        "accounts":rows,
         "remark": f"Asset Movement Entry against {asset_movemet_name}"
     })
     doc.save()
