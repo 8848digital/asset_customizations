@@ -60,8 +60,9 @@
   {
    "fetch_from": "item_code.asset_category",
    "fieldname": "asset_category",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Asset Category",
+   "options": "Asset Category",
    "read_only": 1
   },
   {
@@ -78,7 +79,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-18 17:34:11.145270",
+ "modified": "2024-07-24 17:59:41.641995",
  "modified_by": "Administrator",
  "module": "asset_modification",
  "name": "Parent Asset",

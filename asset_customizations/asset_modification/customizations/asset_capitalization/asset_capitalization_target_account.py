@@ -8,7 +8,7 @@ from erpnext.assets.doctype.asset.depreciation import (
 	get_disposal_account_and_cost_center
 	)
 from erpnext.assets.doctype.asset_capitalization.asset_capitalization import AssetCapitalization
-from frappe.utils import flt,getdate,get_link_to_form
+from frappe.utils import flt, getdate, get_link_to_form
 
 
 class CustomAssetCapitalization(AssetCapitalization):
@@ -50,7 +50,6 @@ class CustomAssetCapitalization(AssetCapitalization):
 					target_against.add(gle["account"])
 		else:
 			AssetCapitalization.get_gl_entries_for_consumed_asset_items(self, gl_entries, target_account, target_against, precision)
-
 
 
 def get_gl_entries_on_asset_disposal(

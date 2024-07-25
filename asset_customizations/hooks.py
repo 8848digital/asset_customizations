@@ -18,14 +18,14 @@ after_migrate = "asset_customizations.migrate.after_migrate"
 # Override standard doctype classes
 
 override_doctype_class = {
-	"Purchase Receipt":"asset_customizations.asset_modification.customizations.buying_controller.doc_events.buying_controller_override.CustomPurchaseReceipt",
+	"Purchase Receipt":"asset_customizations.asset_modification.customizations.buying_controller.buying_controller_override.CustomPurchaseReceipt",
     "Asset":"asset_customizations.asset_modification.customizations.asset.asset_override.CustomAsset",
     "Accounting Dimension":"asset_customizations.asset_modification.customizations.accounting_dimension.accounting_dimension_override.CustomAccountingDimension",
-    "Asset Movement":"asset_customizations.asset_modification.customizations.asset_movement.doc_events.asset_movement_override.CustomAssetMovement",
-    "Asset Depreciation Schedule":"asset_customizations.asset_modification.customizations.asset_depreciation_schedule.doc_event.asset_depreciation_schedule_override.CustomAssetDepreciationSchedule",
+    "Asset Movement":"asset_customizations.asset_modification.customizations.asset_movement.asset_movement_override.CustomAssetMovement",
+    "Asset Depreciation Schedule":"asset_customizations.asset_modification.customizations.asset_depreciation_schedule.asset_depreciation_schedule_override.CustomAssetDepreciationSchedule",
 	"Asset Value Adjustment": "asset_customizations.asset_modification.customizations.asset_value_adjustment.asset_value_adjustment_override.CustomAssetValueAdjustment",
-	"Asset Capitalization": "asset_customizations.asset_modification.customizations.asset_capitalization.doc_events.asset_capitalization_target_account.CustomAssetCapitalization",
-    "Asset Repair": "asset_customizations.asset_modification.customizations.asset_repair.doc_events.asset_repair.AssetRepairMaster"
+	"Asset Capitalization": "asset_customizations.asset_modification.customizations.asset_capitalization.asset_capitalization_target_account.CustomAssetCapitalization",
+    "Asset Repair": "asset_customizations.asset_modification.customizations.asset_repair.asset_repair_override.CustomAssetRepair"
 }
 
 # Document Events
@@ -42,8 +42,8 @@ doc_events = {
 		"on_cancel": "asset_customizations.asset_modification.customizations.journal_entry.journal_entry.on_cancel",
 	},
     "Asset Repair": {
-		"before_save": "asset_customizations.asset_modification.customizations.asset_repair.doc_events.asset_repair.before_save",
-        "on_submit": "asset_customizations.asset_modification.customizations.asset_repair.doc_events.asset_repair.on_submit",
+		"before_save": "asset_customizations.asset_modification.customizations.asset_repair.asset_repair.before_save",
+        "on_submit": "asset_customizations.asset_modification.customizations.asset_repair.asset_repair.on_submit",
 	}
 }
 
@@ -59,7 +59,7 @@ override_whitelisted_methods = {
 
 doctype_js = {"Asset" : "asset_modification/customizations/asset/asset.js",
             "Asset Value Adjustment": "asset_modification/customizations/asset_value_adjustment/asset_value_adjustment_override.js",
-            "Asset Movement": "asset_modification/customizations/asset_movement/doc_events/asset_movement_override.js"
+            "Asset Movement": "asset_modification/customizations/asset_movement/asset_movement_override.js"
             }
 
 
