@@ -94,7 +94,18 @@ class CustomAssetValueAdjustment(AssetValueAdjustment):
                             or dimension.get("default_dimension")
                         }
                     )
-
+            additional_fields = {}
+            fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
+            for fieldname in fieldnames:
+                field_data = frappe.db.get_value("Asset Value Adjustment",
+                                                self.name, fieldname)
+                additional_fields[fieldname] = field_data
+                
+            additional_fields["cost_center"] = self.cost_center
+            
+            credit_entry.update(additional_fields)
+            debit_entry.update(additional_fields)
+            
             je.append("accounts", credit_entry)
             je.append("accounts", debit_entry)
 
@@ -104,3 +115,14 @@ class CustomAssetValueAdjustment(AssetValueAdjustment):
             self.db_set("journal_entry", je.name)
         else:
             AssetValueAdjustment.make_depreciation_entry(self)
+            
+            
+@frappe.whitelist()
+def value_of_accounting_dimension(asset_name):
+    fields = frappe.get_list("Accounting Dimension", pluck="fieldname")
+    acc_dimension_fiels_value = {}
+    for field in fields:
+        value = frappe.db.get_value("Asset", asset_name, field)
+        acc_dimension_fiels_value[field] = value
+    acc_dimension_fiels_value["cost_center"] = frappe.db.get_value("Asset", asset_name, "cost_center")
+    return acc_dimension_fiels_value
