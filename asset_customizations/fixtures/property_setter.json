@@ -14,5 +14,37 @@
   "property_type": "Check",
   "row_name": null,
   "value": "1"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Asset Repair",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "purchase_invoice",
+  "is_system_generated": 0,
+  "modified": "2024-07-30 12:36:55.682827",
+  "module": "asset_modification",
+  "name": "Asset Repair-purchase_invoice-read_only",
+  "property": "read_only",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "1"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Asset Repair",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "purchase_invoice",
+  "is_system_generated": 0,
+  "modified": "2024-07-30 12:37:05.048893",
+  "module": "asset_modification",
+  "name": "Asset Repair-purchase_invoice-hidden",
+  "property": "hidden",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "1"
  }
 ]

@@ -1,3 +1,4 @@
+from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import make_new_active_asset_depr_schedules_and_cancel_current_ones
 import frappe
 from frappe import _
 from erpnext.assets.doctype.asset_repair.asset_repair import AssetRepair
@@ -34,6 +35,7 @@ class CustomAssetRepair(AssetRepair):
                     get_link_to_form(self.doctype, self.name),
                 )
                 self.asset_doc.flags.ignore_validate_update_after_submit = True
+                make_new_active_asset_depr_schedules_and_cancel_current_ones(self.asset_doc, notes)
                 self.asset_doc.save()
 
                 add_asset_activity(
