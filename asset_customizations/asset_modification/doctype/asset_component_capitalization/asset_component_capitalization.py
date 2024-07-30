@@ -1,7 +1,7 @@
 import frappe
 from frappe.model.document import Document
 from erpnext.accounts.utils import get_fiscal_year
-from frappe.utils import today
+
 
 class AssetComponentCapitalization(Document):
 	def on_submit(self):

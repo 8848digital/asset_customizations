@@ -9,7 +9,6 @@ class CustomAssetDepreciationSchedule(AssetDepreciationSchedule):
             fields = frappe.get_list("Accounting Dimension", pluck="fieldname")
             
             self.asset = asset_doc.name
-            # self.cost_center = asset_doc.cost_center
             self.finance_book = row.finance_book
             self.finance_book_id = row.idx
             self.opening_accumulated_depreciation = asset_doc.opening_accumulated_depreciation or 0
