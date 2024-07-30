@@ -10,8 +10,7 @@ from erpnext.accounts.doctype.repost_accounting_ledger.repost_accounting_ledger 
 
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
     AccountingDimension,
-    get_accounting_dimensions,
-    get_doctypes_with_dimensions
+    get_accounting_dimensions
 )
 
 class CustomAccountingDimension(AccountingDimension):
@@ -189,3 +188,7 @@ def toggle_disabling(doc):
                 custom_field_duplicate.save()
 
         frappe.clear_cache(doctype=doctype)
+
+
+def get_doctypes_with_dimensions():
+	return frappe.get_hooks("accounting_dimension_doctypes_for_asset")
