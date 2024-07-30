@@ -13,7 +13,7 @@ class AssetComponentCapitalization(Document):
 
 	def create_je(self):
 		posting_date = today()
-		current_fiscal_year = get_fiscal_year(posting_date(), as_dict=True)
+		current_fiscal_year = get_fiscal_year(posting_date, as_dict=True)
 
 		components = []
 		for row in self.component_asset:
