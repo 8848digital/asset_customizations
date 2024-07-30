@@ -7,10 +7,13 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
-  "company",
   "parent_asset",
-  "component_asset",
-  "amended_from"
+  "amended_from",
+  "column_break_bmdq",
+  "company",
+  "posting_date",
+  "section_break_kgjh",
+  "component_asset"
  ],
  "fields": [
   {
@@ -24,19 +27,22 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Company",
-   "options": "Company"
+   "options": "Company",
+   "reqd": 1
   },
   {
    "fieldname": "parent_asset",
    "fieldtype": "Link",
    "label": "Parent Asset",
-   "options": "Parent Asset"
+   "options": "Parent Asset",
+   "reqd": 1
   },
   {
    "fieldname": "component_asset",
    "fieldtype": "Table",
    "label": "Component Asset",
-   "options": "Component Asset"
+   "options": "Component Asset",
+   "read_only": 1
   },
   {
    "fieldname": "amended_from",
@@ -47,12 +53,26 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "column_break_bmdq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_kgjh",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-24 16:15:07.446333",
+ "modified": "2024-07-30 13:09:44.197679",
  "modified_by": "Administrator",
  "module": "asset_modification",
  "name": "Asset Component Capitalization",
