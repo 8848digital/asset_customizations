@@ -8,10 +8,10 @@ from frappe.utils import today
 
 class AssetComponentCapitalization(Document):
 	def on_submit(self):
-		self.create_je()
+		self.create_gl_entry()
 
 
-	def create_je(self):
+	def create_gl_entry(self):
 		posting_date = today()
 		current_fiscal_year = get_fiscal_year(posting_date, as_dict=True)
 
