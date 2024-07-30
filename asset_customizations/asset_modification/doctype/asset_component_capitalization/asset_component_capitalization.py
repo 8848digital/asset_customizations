@@ -1,6 +1,3 @@
-# Copyright (c) 2024, manoj and contributors
-# For license information, please see license.txt
-
 import frappe
 from frappe.model.document import Document
 from erpnext.accounts.utils import get_fiscal_year
@@ -12,8 +9,9 @@ class AssetComponentCapitalization(Document):
 
 
 	def create_gl_entry(self):
-		posting_date = today()
+		posting_date = self.posting_date
 		current_fiscal_year = get_fiscal_year(posting_date, as_dict=True)
+		current_fiscal_year = current_fiscal_year.get("name")
 
 		components = []
 		for row in self.component_asset:
