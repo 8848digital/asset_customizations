@@ -85,3 +85,14 @@ def fetch_asset(parent_asset):
                                    filters={"custom_parent_asset":parent_asset},
                                    fields=["name", "asset_name", "gross_purchase_amount"])
     return asset_list
+
+
+@frappe.whitelist()
+def parent_asset_filters(doctype, txt, searchfield, start, page_len, filters):
+    asset_component_list = frappe.db.sql("""SELECT pa.name
+										FROM `tabParent Asset` as pa
+										Left JOIN `tabAsset Component Capitalization` as acc
+											ON pa.name = acc.parent_asset
+										WHERE pa.name NOT IN (SELECT acc.parent_asset FROM `tabAsset Component Capitalization` as acc)""")
+    return asset_component_list
+    
