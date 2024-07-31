@@ -66,25 +66,25 @@ class CustomAssetMovement(AssetMovement):
 
 			for original_field in field_mapping.values():
 				frappe.db.set_value("Asset", d.asset, original_field, current_values[original_field], update_modified=False)
+			if self.purpose == "Transfer":
+				if len(frappe.db.get_all("Asset Movement Item", {"asset": d.asset})) > 1:
+					if frappe.db.exists("Asset Depreciation Schedule", {"asset": d.asset}):
+						asset_depr_schedule_doc = frappe.get_doc("Asset Depreciation Schedule", {"asset":d.asset})
+						update_depreciation_schedule(d.asset, asset_depr_schedule_doc.name, self.transaction_date)
+						make_depreciation_entry(asset_depr_schedule_doc.name)
 
-			if len(frappe.db.get_all("Asset Movement Item", {"asset": d.asset})) > 1:
-				if frappe.db.exists("Asset Depreciation Schedule", {"asset": d.asset}):
-					asset_depr_schedule_doc = frappe.get_doc("Asset Depreciation Schedule", {"asset":d.asset})
-					update_depreciation_schedule(d.asset, asset_depr_schedule_doc.name, self.transaction_date)
-					make_depreciation_entry(asset_depr_schedule_doc.name)
-
-					frappe.db.set_value("Asset Depreciation Schedule",
-										asset_depr_schedule_doc.name,
-										"custom_cost_center",
-										custom_target_cost_center,
-										update_modified=True)
-
-					for original_field in field_mapping.values():
 						frappe.db.set_value("Asset Depreciation Schedule",
 											asset_depr_schedule_doc.name,
-											original_field,
-											current_values[original_field], 
+											"custom_cost_center",
+											custom_target_cost_center,
 											update_modified=True)
+
+						for original_field in field_mapping.values():
+							frappe.db.set_value("Asset Depreciation Schedule",
+												asset_depr_schedule_doc.name,
+												original_field,
+												current_values[original_field], 
+												update_modified=True)
 
 			if current_location and current_employee:
 				add_asset_activity(

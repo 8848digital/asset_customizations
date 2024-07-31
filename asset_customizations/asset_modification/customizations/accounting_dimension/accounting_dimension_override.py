@@ -140,6 +140,7 @@ def make_dimension_in_accounting_doctypes(doc, doclist=None):
                 "insert_after": set_target_dimension,
                 "owner": "Administrator",
                 "allow_on_submit": 1 if doctype in repostable_doctypes else 0,
+                "read_only": 1
             }
 
             meta = frappe.get_meta(doctype, cached=False)
