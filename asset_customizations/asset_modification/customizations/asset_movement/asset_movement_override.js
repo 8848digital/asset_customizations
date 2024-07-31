@@ -90,6 +90,58 @@ frappe.ui.form.on("Asset Movement", {
 			frm.refresh_field("assets");
 		}
 	},
+	purpose: function (frm) {
+		const resetFields = () => {
+			frappe.db.get_list("Accounting Dimension", {
+				fields: ["fieldname"]
+			}).then(fields => {
+				let fieldnames_to_be_altered = {};
+	
+				const target_fields = fields.map(field => `target_${field["fieldname"]}`);
+	
+				target_fields.forEach(field => {
+					fieldnames_to_be_altered[field] = { read_only: 1, reqd: 0 };
+				});
+				fieldnames_to_be_altered["custom_target_cost_center"] = { read_only: 1, reqd: 0 }
+	
+				Object.keys(fieldnames_to_be_altered).forEach((fieldname) => {
+					let property_to_be_altered = fieldnames_to_be_altered[fieldname];
+					Object.keys(property_to_be_altered).forEach((property) => {
+						let value = property_to_be_altered[property];
+						frm.fields_dict["assets"].grid.update_docfield_property(fieldname, property, value);
+					});
+				});
+				frm.refresh_field("assets");
+			});
+		};
+	
+		if (frm.doc.purpose === "Transfer") {
+			frappe.db.get_list("Accounting Dimension", {
+				fields: ["fieldname"]
+			}).then(fields => {
+				let fieldnames_to_be_altered = {};
+	
+				const target_fields = fields.map(field => `target_${field["fieldname"]}`);
+	
+				target_fields.forEach(field => {
+					fieldnames_to_be_altered[field] = { read_only: 0, reqd: 0 };
+				});
+				fieldnames_to_be_altered["custom_target_cost_center"] = { read_only: 0, reqd: 0 }
+	
+				Object.keys(fieldnames_to_be_altered).forEach((fieldname) => {
+					let property_to_be_altered = fieldnames_to_be_altered[fieldname];
+					Object.keys(property_to_be_altered).forEach((property) => {
+						let value = property_to_be_altered[property];
+						frm.fields_dict["assets"].grid.update_docfield_property(fieldname, property, value);
+					});
+				});
+				frm.refresh_field("assets");
+			});
+		} else {
+			resetFields();
+		}
+	}
+	
 });
 
 
@@ -102,6 +154,7 @@ frappe.ui.form.on("Asset Movement Item", {
 		}).then(fields => {
 			// Extract and convert field names to the required format
 			const field_names = fields.map(field => `from_${field.name.toLowerCase().replace(/ /g, '_')}`);
+			const target_fields = fields.map(field => `target_${field.name.toLowerCase().replace(/ /g, '_')}`);
 
 			// on manual entry of an asset auto sets their source location / employee
 			const asset_name = locals[cdt][cdn].asset;
@@ -119,8 +172,16 @@ frappe.ui.form.on("Asset Movement Item", {
 						if (asset_doc.cost_center) {
 							frappe.model.set_value(cdt, cdn, "custom_from_cost_center", asset_doc.cost_center);
 						}
+						if (frm.doc.purpose == "Issue" || frm.doc.purpose == "Reciept"){
+							target_fields.forEach(field => {
+								const original_field = field.replace("target_", "");
+								if (asset_doc[original_field]) {
+									frappe.model.set_value(cdt, cdn, field, asset_doc[original_field]);
+								}
+							});
+							frappe.model.set_value(cdt, cdn, "custom_target_cost_center", asset_doc.cost_center);
 
-						// Dynamically set other fields
+						}
 						field_names.forEach(field => {
 							const original_field = field.replace("from_", "");
 							if (asset_doc[original_field]) {

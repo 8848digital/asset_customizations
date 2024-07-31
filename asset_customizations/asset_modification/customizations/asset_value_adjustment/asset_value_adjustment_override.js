@@ -1,5 +1,3 @@
-// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and contributors
-// For license information, please see license.txt
 frappe.ui.form.off("Asset Value Adjustment", "setup");                     
 frappe.ui.form.on("Asset Value Adjustment", {
 	new_asset_value: function (frm) {
@@ -34,6 +32,10 @@ frappe.ui.form.on("Asset Value Adjustment", {
 	},
 
 	asset: function (frm) {
+		frm.trigger("set_acc_dimenstion");
+	},
+
+	set_acc_dimenstion: function (frm) {
 		if (frm.doc.asset) {
 			frm.call({
 				method: "asset_customizations.asset_modification.customizations.asset_value_adjustment.asset_value_adjustment_override.value_of_accounting_dimension",
@@ -47,6 +49,17 @@ frappe.ui.form.on("Asset Value Adjustment", {
 				// 	// }
 				// },
 			});
+		}else {
+			frappe.db.get_list("Accounting Dimension", {
+				fields: ["fieldname"]
+			}).then(fields => {
+				console.log(fields);
+				fields.forEach(field => {
+					frm.set_value(field.fieldname, null);
+				});
+			});
+			frm.set_value("cost_center", null)
+			frm.set_value("current_asset_value", null)
 		}
-	},
+	}
 });
