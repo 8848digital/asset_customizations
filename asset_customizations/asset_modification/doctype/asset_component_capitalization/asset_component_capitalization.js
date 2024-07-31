@@ -20,7 +20,14 @@ frappe.ui.form.on("Asset Component Capitalization", {
                 __("View")
             );
         }
+
+        frm.set_query("parent_asset", () => {
+			return {
+				query: "asset_customizations.asset_modification.doctype.asset_component_capitalization.asset_component_capitalization.parent_asset_filters",
+			};
+		});
     },
+    
 	parent_asset(frm) {
         if (frm.doc.parent_asset) {
             frappe.call({
