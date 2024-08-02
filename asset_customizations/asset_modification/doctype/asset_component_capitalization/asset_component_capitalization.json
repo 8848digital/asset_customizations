@@ -41,8 +41,7 @@
    "fieldname": "component_asset",
    "fieldtype": "Table",
    "label": "Component Asset",
-   "options": "Component Asset",
-   "read_only": 1
+   "options": "Component Asset"
   },
   {
    "fieldname": "amended_from",
@@ -72,7 +71,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-30 13:09:44.197679",
+ "modified": "2024-08-01 13:22:37.146567",
  "modified_by": "Administrator",
  "module": "asset_modification",
  "name": "Asset Component Capitalization",
