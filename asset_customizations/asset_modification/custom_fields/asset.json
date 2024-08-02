@@ -14,7 +14,17 @@
       "insert_after": "custom_component_asset",
       "label": "Parent Asset",
       "module": "asset_modification",
-      "depends_on": "eval: doc.custom_component_asset;"
-     }
+      "depends_on": "eval: doc.custom_component_asset;",
+      "mandatory_depends_on": "eval: doc.custom_component_asset;"
+     },
+     {
+      "fieldname": "is_capitalized",
+      "fieldtype": "Check",
+      "label": "Is Capitalized",
+      "insert_after": "custom_component_asset",
+      "module": "asset_modification",
+      "hidden": 1,
+      "read_only": 1
+    }
     ]
 }
