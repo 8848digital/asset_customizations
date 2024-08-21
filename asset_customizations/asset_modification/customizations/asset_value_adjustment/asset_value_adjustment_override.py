@@ -24,7 +24,7 @@ class CustomAssetValueAdjustment(AssetValueAdjustment):
             (
                 fixed_asset_account,
                 accumulated_depreciation_account,
-                _,
+                depreciation_expense_account,
             ) = get_depreciation_accounts(asset.asset_category, asset.company)
 
             depreciation_cost_center, depreciation_series = frappe.get_cached_value(
@@ -36,45 +36,37 @@ class CustomAssetValueAdjustment(AssetValueAdjustment):
             je.naming_series = depreciation_series
             je.posting_date = self.date
             je.company = self.company
-            je.remark = "Revaluation Entry against {0} worth {1}".format(self.asset, self.difference_amount)
+            je.remark = f"Revaluation Entry against {self.asset} worth {self.difference_amount}"
             je.finance_book = self.finance_book
 
-            if self.difference_amount<0:
-                difference_amount  = -(self.difference_amount)
+            entry_template = {
+                "cost_center": self.cost_center or depreciation_cost_center,
+                "reference_type": "Asset",
+                "reference_name": asset.name,
+            }
+
+            if self.difference_amount < 0:
                 credit_entry = {
                     "account": fixed_asset_account,
-                    "credit_in_account_currency": difference_amount,
-                    "cost_center": depreciation_cost_center or self.cost_center,
-                    "reference_type": "Asset",
-                    "reference_name": asset.name,
+                    "credit_in_account_currency": -self.difference_amount,
+                    **entry_template,
                 }
-
                 debit_entry = {
-                    "account": self.custom_difference_account,
-                    "debit_in_account_currency": difference_amount,
-                    "cost_center": depreciation_cost_center or self.cost_center,
-                    "reference_type": "Asset",
-                    "reference_name": asset.name,
+                    "account": self.difference_account,
+                    "debit_in_account_currency": -self.difference_amount,
+                    **entry_template,
                 }
-
-            elif self.difference_amount>0:
-                difference_amount  = self.difference_amount
+            elif self.difference_amount > 0:
                 credit_entry = {
-                    "account": self.custom_difference_account,
-                    "credit_in_account_currency": difference_amount,
-                    "cost_center": depreciation_cost_center or self.cost_center,
-                    "reference_type": "Asset",
-                    "reference_name": asset.name,
+                    "account": self.difference_account,
+                    "credit_in_account_currency": self.difference_amount,
+                    **entry_template,
                 }
-
                 debit_entry = {
                     "account": fixed_asset_account,
-                    "debit_in_account_currency": difference_amount,
-                    "cost_center": depreciation_cost_center or self.cost_center,
-                    "reference_type": "Asset",
-                    "reference_name": asset.name,
+                    "debit_in_account_currency": self.difference_amount,
+                    **entry_template,
                 }
-
 
             accounting_dimensions = get_checks_for_pl_and_bs_accounts()
 
@@ -94,18 +86,16 @@ class CustomAssetValueAdjustment(AssetValueAdjustment):
                             or dimension.get("default_dimension")
                         }
                     )
+
             additional_fields = {}
             fieldnames = frappe.get_list("Accounting Dimension", pluck="fieldname")
             for fieldname in fieldnames:
-                field_data = frappe.db.get_value("Asset Value Adjustment",
-                                                self.name, fieldname)
+                field_data = frappe.db.get_value("Asset Value Adjustment", self.name, fieldname)
                 additional_fields[fieldname] = field_data
-                
-            additional_fields["cost_center"] = self.cost_center
-            
+
             credit_entry.update(additional_fields)
             debit_entry.update(additional_fields)
-            
+
             je.append("accounts", credit_entry)
             je.append("accounts", debit_entry)
 
