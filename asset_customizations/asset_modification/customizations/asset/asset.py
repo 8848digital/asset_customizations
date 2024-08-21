@@ -46,3 +46,6 @@ def asset_scrap_date_validation(asset_name, scrap_date, purchase_date, calculate
         elif not last_depreciated_row and not next_depriciating_row["journal_entry"]:
             scrap_asset(asset_name, scrap_date)
             return
+        elif last_depreciated_row and not next_depriciating_row:
+            scrap_asset(asset_name, scrap_date)
+            return

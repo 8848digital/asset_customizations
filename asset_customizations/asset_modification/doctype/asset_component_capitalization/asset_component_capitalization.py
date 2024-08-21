@@ -88,7 +88,8 @@ class AssetComponentCapitalization(Document):
 								'debit_in_account_currency': credit,
 								'credit_in_account_currency': debit,
 								"debit_in_transaction_currency": credit,
-								"credit_in_transaction_currency": debit,})
+								"credit_in_transaction_currency": debit,
+								"is_cancelled": 1,})
 			doc = frappe.get_doc(gl_data)
 			doc.save()
 		return doc.name
